@@ -44,6 +44,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Scroll Reveal ---
   const revealElements = document.querySelectorAll('.reveal');
+
+  function revealIfInView(el) {
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight * 0.92 && rect.bottom > 0) {
+      el.classList.add('visible');
+      return true;
+    }
+    return false;
+  }
+
   if (revealElements.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -53,7 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     }, { threshold: 0.05, rootMargin: '0px 0px -40px 0px' });
-    revealElements.forEach(el => revealObserver.observe(el));
+
+    revealElements.forEach(el => {
+      if (!revealIfInView(el)) revealObserver.observe(el);
+    });
   } else {
     revealElements.forEach(el => el.classList.add('visible'));
   }

@@ -41,7 +41,7 @@
   <meta name="twitter:description" content="Contemporary paintings, drawings, and sculptures by Beau Thompson.">
   <meta name="twitter:image" content="assets/crab-cigarette.webp">
 
-  <link rel="stylesheet" href="style.css?v=8">
+  <link rel="stylesheet" href="style.css?v=16">
   <link rel="preload" as="image" href="assets/crab-cigarette.webp" fetchpriority="high">
   <link rel="preload" as="image" href="assets/highland-cow.webp">
 
@@ -65,7 +65,7 @@
   <!-- Header & Navigation -->
   <header id="header">
     <div class="container nav-container">
-      <a href="#home" class="logo">BEAU THOMPSON</a>
+      <a href="#home" class="logo hero-animate">BEAU THOMPSON</a>
       <button class="menu-toggle" id="menu-toggle" aria-label="Open menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
@@ -96,18 +96,18 @@
       </div>
     </div>
     <div class="hero-content">
-      <h2>Beau Thompson</h2>
-      <p class="hero-tagline">Paintings &bull; Drawings &bull; Sculptures</p>
-      <div class="hero-actions">
+      <h2 class="hero-animate">Beau Thompson</h2>
+      <p class="hero-tagline hero-animate">Paintings &bull; Drawings &bull; Sculptures</p>
+      <div class="hero-actions hero-animate">
         <a href="#gallery" class="hero-btn hero-btn-primary">View Gallery</a>
         <a href="shop.html" class="hero-btn hero-btn-secondary">Visit Shop</a>
       </div>
     </div>
-    <a href="#gallery" class="hero-scroll" aria-label="Scroll to gallery">
+    <a href="#gallery" class="hero-scroll hero-animate" aria-label="Scroll to gallery">
       <span>Scroll</span>
       <span class="hero-scroll-line"></span>
     </a>
-    <figcaption class="hero-caption" id="hero-caption" aria-live="polite">
+    <figcaption class="hero-caption hero-animate" id="hero-caption" aria-live="polite">
       <span class="hero-caption-label">Featured Work</span>
       <span class="hero-caption-title" id="hero-caption-title"></span>
       <span class="hero-caption-meta" id="hero-caption-meta"></span>
@@ -462,19 +462,19 @@
   </section>
 
   <!-- Lightbox Modal -->
-  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Artwork viewer">
-    <div class="lightbox-content">
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <div class="lightbox-content" role="dialog" aria-modal="true" aria-label="Artwork viewer">
+      <button class="lightbox-close" id="lightbox-close" aria-label="Close Lightbox">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
       <button class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Previous artwork">
         <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
       </button>
       <button class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Next artwork">
         <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-      </button>
-      <button class="lightbox-close" id="lightbox-close" aria-label="Close Lightbox">
-        <svg viewBox="0 0 24 24" fill="none">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
       </button>
       <div class="lightbox-image-wrapper">
         <img src="" alt="" class="lightbox-image" id="lightbox-image">
@@ -507,6 +507,6 @@
     <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></svg>
   </button>
 
-  <script src="app.js?v=5" defer></script>
+  <script src="app.js?v=13" defer></script>
 </body>
 </html>

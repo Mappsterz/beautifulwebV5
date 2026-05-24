@@ -74,10 +74,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let heroCaptionTimer = null;
   let heroTransitioning = false;
   const heroPreloads = new Map();
-  const CAPTION_SWAP_MS = 240;
-  const LIGHTBOX_SWAP_MS = 120;
-  const HERO_INTERVAL_MS = 5500;
-  const HERO_TRANSITION_MS = 480;
+  const CAPTION_SWAP_MS = 450;
+  const HERO_INTERVAL_MS = 6200;
+  const HERO_TRANSITION_MS = 1000;
   const MODAL_TRANSITION_MS = 400;
 
   function preloadHeroSrc(src) {
@@ -124,6 +123,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function enableHeroCaption() {
+    if (!heroCaption) return;
+    const slide = heroSlides[heroIndex];
+    heroCaption.classList.add('has-entered');
+    heroCaption.classList.toggle('active', Boolean(slide?.dataset.title));
+  }
+
   function showHeroSlide(index, { immediate = false } = {}) {
     const target = heroSlides[index];
     if (!target) return;
@@ -133,7 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
       setHeroSlideClasses(index);
       heroIndex = index;
       writeHeroCaption(target);
-      heroCaption?.classList.toggle('active', Boolean(target.dataset.title));
       heroCaption?.classList.remove('is-changing');
       return;
     }
@@ -178,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     target.addEventListener('animationend', onAnimationEnd);
-    setTimeout(finishTransition, HERO_TRANSITION_MS + 80);
+    setTimeout(finishTransition, HERO_TRANSITION_MS + 120);
 
     swapHeroCaption(target);
   }
@@ -223,12 +228,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  async function bootSiteEnter() {
+    if (document.fonts?.ready) {
+      try {
+        await Promise.race([
+          document.fonts.ready,
+          new Promise((resolve) => setTimeout(resolve, 2000))
+        ]);
+      } catch {
+        /* continue without waiting */
+      }
+    }
+
+    if (!document.documentElement.classList.contains('is-loaded')) {
+      document.documentElement.classList.add('is-loaded');
+    }
+  }
+
+  function scheduleHeroCaptionEnter() {
+    if (!heroCaption) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      enableHeroCaption();
+      return;
+    }
+
+    const delayMs = 640 + 620;
+    setTimeout(enableHeroCaption, delayMs);
+  }
+
   async function initHero() {
+    bootSiteEnter();
+
     if (!heroSlides.length) return;
 
-    await Promise.all([...heroSlides].map((slide) => prepareHeroSlide(slide)));
+    try {
+      await Promise.all([...heroSlides].map((slide) => prepareHeroSlide(slide)));
+    } catch {
+      /* continue with whatever loaded */
+    }
 
     showHeroSlide(heroIndex, { immediate: true });
+    scheduleHeroCaptionEnter();
+
     if (heroSlides.length > 1) startHeroRotation();
   }
 
@@ -244,6 +286,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const revealElements = document.querySelectorAll('.reveal');
 
+  function revealIfInView(el) {
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight * 0.92 && rect.bottom > 0) {
+      el.classList.add('visible');
+      return true;
+    }
+    return false;
+  }
+
   if (revealElements.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -254,7 +305,9 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }, { threshold: 0.05, rootMargin: '0px 0px -40px 0px' });
 
-    revealElements.forEach(el => revealObserver.observe(el));
+    revealElements.forEach(el => {
+      if (!revealIfInView(el)) revealObserver.observe(el);
+    });
   } else {
     revealElements.forEach(el => el.classList.add('visible'));
   }
@@ -483,51 +536,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  let lightboxSwapTimer = null;
-
-  function loadLightboxImage(src, alt) {
-    if (!lightboxImage) return;
-
-    clearTimeout(lightboxSwapTimer);
-    lightboxImage.onload = null;
-
-    const reveal = () => lightboxImage.classList.remove('is-swapping');
-
-    const apply = () => {
-      lightboxImage.setAttribute('src', src);
-      lightboxImage.setAttribute('alt', alt);
-      if (lightboxImage.complete && lightboxImage.naturalWidth > 0) {
-        requestAnimationFrame(reveal);
-      } else {
-        lightboxImage.onload = reveal;
-      }
-    };
-
-    const currentSrc = lightboxImage.getAttribute('src');
-    if (currentSrc && currentSrc !== src) {
-      lightboxImage.classList.add('is-swapping');
-      lightboxSwapTimer = setTimeout(apply, LIGHTBOX_SWAP_MS);
-    } else {
-      apply();
-    }
-  }
-
-  function showCurrentSlide() {
-    const cards = visibleCards();
-    if (!cards.length) return;
-
-    const card = cards[currentCardIndex];
+  function fillLightbox(card, slideIndex) {
     const gallery = getCardGallery(card);
     if (!gallery.length) return;
 
-    currentSlideIndex = ((currentSlideIndex % gallery.length) + gallery.length) % gallery.length;
+    currentSlideIndex = ((slideIndex % gallery.length) + gallery.length) % gallery.length;
     const slide = gallery[currentSlideIndex];
     const year = card.querySelector('.art-year')?.textContent || '';
+    const cardImg = card.querySelector('.art-image-wrapper img');
 
-    loadLightboxImage(slide.src, `${slide.title} - Artwork by Beau Thompson`);
-    lightboxImage.decoding = 'async';
-    lightboxTitle.textContent = slide.title;
-    lightboxMeta.innerHTML = `${slide.meta} &bull; ${year}`;
+    if (lightboxImage) {
+      const src = slide.src || cardImg?.currentSrc || cardImg?.src || '';
+      lightboxImage.src = src;
+      lightboxImage.alt = `${slide.title} - Artwork by Beau Thompson`;
+      lightboxImage.decoding = 'async';
+    }
+
+    if (lightboxTitle) lightboxTitle.textContent = slide.title;
+    if (lightboxMeta) lightboxMeta.innerHTML = `${slide.meta} &bull; ${year}`;
 
     const availabilityKey = card.dataset.availability || '';
     const availability = availabilityCopy[availabilityKey];
@@ -555,9 +581,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (gallery.length > 1) {
-      lightboxCounter.textContent = `${currentSlideIndex + 1} / ${gallery.length}`;
-      lightboxCounter.classList.add('active');
-    } else {
+      if (lightboxCounter) {
+        lightboxCounter.textContent = `${currentSlideIndex + 1} / ${gallery.length}`;
+        lightboxCounter.classList.add('active');
+      }
+    } else if (lightboxCounter) {
       lightboxCounter.textContent = '';
       lightboxCounter.classList.remove('active');
     }
@@ -565,27 +593,22 @@ document.addEventListener('DOMContentLoaded', () => {
     renderLightboxThumbs(gallery);
   }
 
-  function openLightbox(cardIndex, slideIndex = 0) {
+  function showCurrentSlide() {
     const cards = visibleCards();
     if (!cards.length) return;
+    fillLightbox(cards[currentCardIndex], currentSlideIndex);
+  }
+
+  function openLightbox(cardIndex, slideIndex = 0) {
+    const cards = visibleCards();
+    if (!cards.length || !lightbox) return;
 
     currentCardIndex = ((cardIndex % cards.length) + cards.length) % cards.length;
-    currentSlideIndex = slideIndex;
+    fillLightbox(cards[currentCardIndex], slideIndex);
 
-    const card = cards[currentCardIndex];
-    const cardImg = card.querySelector('.art-image-wrapper img');
-    const gallery = getCardGallery(card);
-    const slide = gallery[slideIndex] || gallery[0];
-
-    if (slideIndex === 0 && cardImg && lightboxImage && slide) {
-      lightboxImage.src = cardImg.currentSrc || cardImg.src;
-      lightboxImage.alt = `${slide.title} - Artwork by Beau Thompson`;
-      lightboxImage.classList.remove('is-swapping');
-    }
-
-    showCurrentSlide();
-    document.body.style.overflow = 'hidden';
     lightbox.classList.add('active');
+    lightbox.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
   }
 
   function goNext() {
@@ -628,18 +651,19 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   const closeLightbox = () => {
+    if (!lightbox) return;
+
     lightbox.classList.remove('active');
-    lightboxImage?.classList.remove('is-swapping');
+    lightbox.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
-    clearTimeout(lightboxSwapTimer);
     setTimeout(() => {
       if (lightboxThumbs) {
         lightboxThumbs.innerHTML = '';
         lightboxThumbs.classList.remove('active');
       }
       if (lightboxImage) {
-        lightboxImage.onload = null;
-        lightboxImage.setAttribute('src', '');
+        lightboxImage.removeAttribute('src');
+        lightboxImage.alt = '';
       }
     }, MODAL_TRANSITION_MS);
   };

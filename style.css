@@ -28,7 +28,10 @@
   --duration-fast: 180ms;
   --duration-base: 280ms;
   --duration-slow: 480ms;
-  --duration-hero: 480ms;
+  --duration-enter: 620ms;
+  --duration-hero: 1000ms;
+  --ease-hero: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
   --duration-modal: 400ms;
   --ease-modal: cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -291,13 +294,57 @@ nav a.active::after, nav a:hover::after {
 .hero-slide.is-fading-in {
   z-index: 2;
   opacity: 0;
-  animation: heroCrossfade var(--duration-hero) var(--ease-out) forwards;
+  will-change: opacity;
+  animation: heroCrossfade var(--duration-hero) linear forwards;
 }
 
 @keyframes heroCrossfade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  0% { opacity: 0; }
+  12% { opacity: 0.08; }
+  32% { opacity: 0.28; }
+  58% { opacity: 0.58; }
+  82% { opacity: 0.84; }
+  100% { opacity: 1; }
 }
+
+html:not(.is-loaded) .hero-bg {
+  opacity: 0;
+}
+
+html.is-loaded .hero-bg {
+  opacity: 1;
+  transition: opacity calc(var(--duration-hero) * 1.15) var(--ease-hero);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  max-width: 720px;
+  padding: 0 2rem;
+}
+
+/* Hero text entrance */
+.hero-animate {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+html.is-loaded .hero-animate {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity var(--duration-enter) var(--ease-enter),
+    transform var(--duration-enter) var(--ease-enter);
+  transition-delay: var(--hero-delay, 0ms);
+}
+
+.logo.hero-animate { --hero-delay: 200ms; }
+.hero-content h2.hero-animate { --hero-delay: 340ms; }
+.hero-tagline.hero-animate { --hero-delay: 440ms; }
+.hero-actions.hero-animate { --hero-delay: 540ms; }
+.hero-caption.hero-animate { --hero-delay: 640ms; }
+.hero-scroll.hero-animate { --hero-delay: 760ms; }
 
 .hero-slide--bison {
   object-position: center 46%;
@@ -317,14 +364,6 @@ nav a.active::after, nav a:hover::after {
     rgba(247, 245, 242, 0.95) 100%
   );
   pointer-events: none;
-}
-
-.hero-content {
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  max-width: 720px;
-  padding: 0 2rem;
 }
 
 .hero h2 {
@@ -398,20 +437,22 @@ nav a.active::after, nav a:hover::after {
   max-width: 320px;
   text-align: left;
   opacity: 0;
-  transform: translateY(8px);
-  transition: opacity calc(var(--duration-hero) / 2) var(--ease-out),
-              transform calc(var(--duration-hero) / 2) var(--ease-out);
   pointer-events: none;
 }
 
-.hero-caption.active {
+html.is-loaded .hero-caption.has-entered.active:not(.is-changing) {
   opacity: 1;
   transform: translateY(0);
+  transition: opacity calc(var(--duration-hero) * 0.45) var(--ease-hero),
+              transform calc(var(--duration-hero) * 0.45) var(--ease-hero);
 }
 
 .hero-caption.is-changing {
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateY(6px);
+  transition: opacity calc(var(--duration-hero) * 0.45) var(--ease-hero),
+              transform calc(var(--duration-hero) * 0.45) var(--ease-hero);
+  transition-delay: 0ms;
 }
 
 .hero-caption-label {
@@ -445,6 +486,10 @@ nav a.active::after, nav a:hover::after {
     text-align: center;
     align-items: center;
     max-width: calc(100% - 2rem);
+  }
+
+  html.is-loaded .hero-caption.hero-animate {
+    transform: translateX(-50%) translateY(0);
   }
 }
 
@@ -999,7 +1044,7 @@ textarea.form-input {
   padding: 2rem;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.35s ease;
+  transition: opacity var(--duration-base) var(--ease-standard);
 }
 
 .lightbox.active {
@@ -1014,15 +1059,6 @@ textarea.form-input {
   max-height: 85vh;
   position: relative;
   align-items: center;
-  opacity: 0;
-  transform: translateY(16px) scale(0.98);
-  transition: transform var(--duration-modal) var(--ease-modal),
-              opacity var(--duration-modal) ease;
-}
-
-.lightbox.active .lightbox-content {
-  opacity: 1;
-  transform: translateY(0) scale(1);
 }
 
 .lightbox-image-wrapper {
@@ -1033,17 +1069,37 @@ textarea.form-input {
   align-items: center;
 }
 
+.lightbox-close {
+  position: absolute;
+  top: -4rem;
+  right: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--duration-base) var(--ease-emphasized),
+              color var(--duration-fast) var(--ease-standard);
+}
+
+.lightbox-close svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  stroke: var(--text-primary);
+  stroke-width: 1.5;
+}
+
+.lightbox-close:hover {
+  transform: rotate(90deg);
+}
+
 .lightbox-image {
   max-width: 100%;
   max-height: 70vh;
   object-fit: contain;
   border: 1px solid var(--border-color);
-  opacity: 1;
-  transition: opacity var(--duration-instant) var(--ease-standard);
-}
-
-.lightbox-image.is-swapping {
-  opacity: 0;
 }
 
 .lightbox-details {
@@ -1184,32 +1240,6 @@ textarea.form-input {
 .lightbox-inquire-btn:hover {
   background-color: transparent;
   color: var(--accent);
-}
-
-.lightbox-close {
-  position: absolute;
-  top: -4rem;
-  right: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform var(--duration-base) var(--ease-emphasized),
-              color var(--duration-fast) var(--ease-standard);
-}
-
-.lightbox-close svg {
-  width: 1.5rem;
-  height: 1.5rem;
-  stroke: var(--text-primary);
-  stroke-width: 1.5;
-}
-
-.lightbox-close:hover {
-  transform: rotate(90deg);
 }
 
 .lightbox-nav {
@@ -1531,7 +1561,7 @@ footer {
     right: 50%;
     transform: translateX(50%);
   }
-  
+
   .lightbox-close:hover {
     transform: translateX(50%) rotate(90deg);
   }
@@ -1562,13 +1592,28 @@ footer {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 
+  html.is-loaded .hero-bg {
+    transition: none;
+    opacity: 1;
+  }
+
+  .site-enter,
+  html.is-loaded .site-enter,
+  .hero-animate,
+  html.is-loaded .hero-animate {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  html.is-loaded .hero-caption.hero-animate {
+    transform: none;
+  }
+
   .reveal,
   .hero-slide,
   .hero-slide.is-fading-in,
   .hero-caption,
-  .lightbox,
-  .lightbox-content,
-  .lightbox-image,
   .nav-wrapper,
   .nav-overlay,
   .cart-drawer,
@@ -1584,9 +1629,11 @@ footer {
 
   .hero-caption,
   .hero-caption.active,
+  .hero-caption.has-entered,
   .hero-caption.is-changing {
     opacity: 1;
     transform: none;
+    animation: none;
   }
 
   .hero-slide.is-fading-in {
@@ -1596,10 +1643,14 @@ footer {
 
   .lightbox-content,
   .lightbox.active .lightbox-content,
-  .product-modal,
   .product-modal-overlay.active .product-modal {
     opacity: 1;
     transform: none;
+  }
+
+  /* Keep a very subtle overlay fade even in reduced-motion mode. */
+  .lightbox {
+    transition: opacity 140ms linear !important;
   }
 }
 
