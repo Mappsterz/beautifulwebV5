@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script>
+    (function () {
+      if (!location.hostname.endsWith('github.io')) return;
+      var segment = location.pathname.split('/').filter(Boolean)[0];
+      if (!segment || segment.includes('.')) return;
+      var base = document.createElement('base');
+      base.href = '/' + segment + '/';
+      document.head.insertBefore(base, document.head.firstChild);
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beau Thompson | Shop &amp; Merchandise</title>
+  <meta name="description" content="Official shop of Beau Thompson — limited-run Highland Cow sweatshirts and tees printed from the original studio painting.">
+  <meta name="theme-color" content="#f5f0ea">
+
+  <!-- Replace with the production domain before launch -->
+  <link rel="canonical" href="https://beaurancethompson.com/shop.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap">
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="assets/highland-cow.webp">
+
+  <meta property="og:title" content="Beau Thompson | Highland Cow Studio Drop">
+  <meta property="og:description" content="Limited Highland Cow sweatshirts and tees printed from the original studio painting.">
+  <meta property="og:image" content="assets/highland-cow-sweatshirt.png">
+  <meta property="og:image:alt" content="Highland Cow Sweatshirt by Beau Thompson">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://beaurancethompson.com/shop.html">
+  <meta property="og:site_name" content="Beau Thompson">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Beau Thompson | Highland Cow Studio Drop">
+  <meta name="twitter:description" content="Limited Highland Cow sweatshirts and tees printed from the original studio painting.">
+  <meta name="twitter:image" content="assets/highland-cow-sweatshirt.png">
+
+  <link rel="stylesheet" href="style.css?v=7">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    "name": "Beau Thompson Studio Shop",
+    "url": "https://beaurancethompson.com/shop.html",
+    "image": "https://beaurancethompson.com/assets/highland-cow-sweatshirt.png",
+    "description": "Limited-run apparel and merchandise from the studio of Beau Thompson.",
+    "currenciesAccepted": "USD",
+    "paymentAccepted": "PayPal, Credit Card"
+  }
+  </script>
+</head>
+<body>
+
+  <a href="#products" class="skip-link">Skip to products</a>
+
+  <!-- Header & Navigation -->
+  <header id="header">
+    <div class="container nav-container">
+      <a href="index.html" class="logo">BEAU THOMPSON</a>
+      <button class="menu-toggle" id="menu-toggle" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-overlay" id="nav-overlay"></div>
+      <div class="nav-wrapper nav-shop" id="nav-wrapper">
+        <nav>
+          <ul>
+            <li><a href="index.html#gallery" class="nav-link">Works</a></li>
+            <li><a href="index.html#about" class="nav-link">About</a></li>
+            <li><a href="index.html#contact" class="nav-link">Contact</a></li>
+            <li><a href="shop.html" class="nav-link active">Shop</a></li>
+          </ul>
+        </nav>
+        <div class="cart-nav-link" id="cart-nav-btn" aria-label="Open Shopping Cart">
+          <div class="cart-icon-container">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--text-secondary)" stroke-width="1.5" fill="none">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <span class="cart-badge" id="cart-badge">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Store Header -->
+  <section class="container shop-header reveal">
+    <div class="shop-header-layout">
+      <div class="shop-header-image">
+        <picture>
+          <source srcset="assets/highland-cow.webp" type="image/webp">
+          <img src="assets/highland-cow.webp" alt="Untitled (Highland Cow) — studio print" loading="lazy" decoding="async">
+        </picture>
+      </div>
+      <div class="shop-header-text">
+        <span class="section-num">04 / Store</span>
+        <h2 class="section-title" style="margin-bottom: 1rem;">Merchandise</h2>
+        <p class="shop-header-desc">The first studio drop — Highland Cow apparel, printed from the original painting.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Highland Cow Merch -->
+  <section class="shop-section" id="products">
+    <div class="container">
+      <div class="featured-drop reveal">
+        <div class="featured-drop-header">
+          <span class="section-num">Studio Drop 01</span>
+          <h3 class="section-title">Highland Cow Collection</h3>
+          <p class="featured-drop-desc">Heavyweight sweatshirts and everyday tees featuring Beau Thompson&rsquo;s <em>Untitled (Highland Cow)</em> painting.</p>
+        </div>
+
+        <div class="product-grid product-grid--drop">
+
+          <!-- Highland Cow Sweatshirt -->
+          <div class="product-card product-card--apparel product-card--mockup product-card--expandable" id="hc-sweatshirt" data-description="Heavyweight cotton fleece crewneck featuring Untitled (Highland Cow) printed on the chest. Relaxed fit with ribbed cuffs and hem. Limited studio drop." data-gallery='[{"src":"assets/highland-cow-sweatshirt.webp","label":"Full view"},{"src":"assets/highland-cow-sweatshirt-print-detail.webp","label":"Print on garment"},{"src":"assets/highland-cow-sweatshirt-print-closeup.webp","label":"Print closeup"},{"src":"assets/highland-cow-print-artwork.webp","label":"Artwork detail"}]'>
+            <div class="product-image-wrapper product-image-wrapper--white product-open-trigger">
+              <picture>
+                <source srcset="assets/highland-cow-sweatshirt.webp" type="image/webp">
+                <img src="assets/highland-cow-sweatshirt.webp" alt="Highland Cow Sweatshirt — grey crewneck with print" loading="eager" fetchpriority="high" decoding="async">
+              </picture>
+              <span class="product-badge">New</span>
+            </div>
+            <div class="art-info">
+              <div class="art-title-row">
+                <h4 class="art-title">Highland Cow Sweatshirt</h4>
+                <span class="art-year">$58.00</span>
+              </div>
+              <span class="art-meta">Heavyweight cotton fleece &bull; Front print</span>
+
+              <div class="product-options">
+                <div class="product-option">
+                  <span class="product-option-label">Size</span>
+                  <div class="option-selector" data-option="size">
+                    <button type="button" class="option-btn" data-value="S">S</button>
+                    <button type="button" class="option-btn active" data-value="M">M</button>
+                    <button type="button" class="option-btn" data-value="L">L</button>
+                    <button type="button" class="option-btn" data-value="XL">XL</button>
+                    <button type="button" class="option-btn" data-value="2XL">2XL</button>
+                  </div>
+                </div>
+                <div class="product-option">
+                  <span class="product-option-label">Color</span>
+                  <div class="option-selector" data-option="color">
+                    <button type="button" class="option-btn active" data-value="Light">Light</button>
+                    <button type="button" class="option-btn" data-value="Dark">Dark</button>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                class="btn-add-to-cart"
+                data-id="hc-sweatshirt"
+                data-name="Highland Cow Sweatshirt"
+                data-price="58.00"
+                data-type="apparel"
+              >Add to Cart</button>
+            </div>
+          </div>
+
+          <!-- Highland Cow T-Shirt -->
+          <div class="product-card product-card--apparel product-card--expandable" data-description="Soft ring-spun cotton tee with Untitled (Highland Cow) on the front. Lightweight everyday fit with a classic crew neckline. Limited studio drop.">
+            <div class="product-image-wrapper product-open-trigger">
+              <picture>
+                <source srcset="assets/highland-cow.webp" type="image/webp">
+                <img src="assets/highland-cow.webp" alt="Highland Cow T-Shirt" loading="lazy" decoding="async">
+              </picture>
+              <span class="product-badge">New</span>
+            </div>
+            <div class="art-info">
+              <div class="art-title-row">
+                <h4 class="art-title">Highland Cow T-Shirt</h4>
+                <span class="art-year">$38.00</span>
+              </div>
+              <span class="art-meta">Soft ring-spun cotton &bull; Front print</span>
+
+              <div class="product-options">
+                <div class="product-option">
+                  <span class="product-option-label">Size</span>
+                  <div class="option-selector" data-option="size">
+                    <button type="button" class="option-btn" data-value="S">S</button>
+                    <button type="button" class="option-btn active" data-value="M">M</button>
+                    <button type="button" class="option-btn" data-value="L">L</button>
+                    <button type="button" class="option-btn" data-value="XL">XL</button>
+                    <button type="button" class="option-btn" data-value="2XL">2XL</button>
+                  </div>
+                </div>
+                <div class="product-option">
+                  <span class="product-option-label">Color</span>
+                  <div class="option-selector" data-option="color">
+                    <button type="button" class="option-btn active" data-value="Light">Light</button>
+                    <button type="button" class="option-btn" data-value="Dark">Dark</button>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                class="btn-add-to-cart"
+                data-id="hc-tee"
+                data-name="Highland Cow T-Shirt"
+                data-price="38.00"
+                data-type="apparel"
+              >Add to Cart</button>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="drop-details reveal">
+          <div class="drop-details-header">
+            <span class="section-num">Drop Details</span>
+            <h4>What you should know before ordering</h4>
+          </div>
+          <div class="drop-details-grid">
+            <div class="drop-detail-item">
+              <span class="drop-detail-label">Fabric</span>
+              <p>Heavyweight 80/20 cotton-poly fleece on the crewneck. Soft ring-spun 100% cotton on the tee. Both pieces run true to size with a relaxed, modern fit.</p>
+            </div>
+            <div class="drop-detail-item">
+              <span class="drop-detail-label">Print</span>
+              <p>Front-chest print using a fine-detail DTG process on the tee and discharge ink screen print on the sweatshirt, both designed to keep the original brushwork visible.</p>
+            </div>
+            <div class="drop-detail-item">
+              <span class="drop-detail-label">Shipping</span>
+              <p>Made-to-order by the studio. Orders ship within 7&ndash;10 business days from the United States via tracked Standard or Priority mail.</p>
+            </div>
+            <div class="drop-detail-item">
+              <span class="drop-detail-label">Care</span>
+              <p>Machine wash cold inside-out with like colors. Tumble dry low or hang to dry. Iron in reverse, avoiding the printed area. Do not bleach.</p>
+            </div>
+          </div>
+          <p class="drop-details-footnote">This is a limited studio drop. If your size sells out, please <a href="index.html#contact">send a note</a> and we will let you know if a restock is planned.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Product Detail Modal -->
+  <div class="product-modal-overlay" id="product-modal-overlay" aria-hidden="true">
+    <div class="product-modal" id="product-modal" role="dialog" aria-modal="true" aria-labelledby="product-modal-title">
+      <button class="product-modal-close" id="product-modal-close" aria-label="Close product details">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div class="product-modal-layout">
+        <div class="product-modal-image">
+          <div class="product-modal-image-stage">
+            <button type="button" class="product-modal-nav product-modal-nav--prev" id="product-modal-prev" aria-label="Previous image" hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <img src="" alt="" id="product-modal-image">
+            <button type="button" class="product-modal-nav product-modal-nav--next" id="product-modal-next" aria-label="Next image" hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+          </div>
+          <div class="product-modal-gallery" id="product-modal-gallery"></div>
+          <span class="product-modal-gallery-label" id="product-modal-gallery-label"></span>
+        </div>
+        <div class="product-modal-details">
+          <span class="product-badge" id="product-modal-badge">New</span>
+          <h3 class="product-modal-title" id="product-modal-title"></h3>
+          <p class="product-modal-price" id="product-modal-price"></p>
+          <p class="product-modal-meta" id="product-modal-meta"></p>
+          <p class="product-modal-description" id="product-modal-description"></p>
+          <div class="product-options" id="product-modal-options"></div>
+          <button type="button" class="btn-add-to-cart" id="product-modal-add-btn">Add to Cart</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Sidebar Drawer -->
+  <div class="cart-overlay" id="cart-overlay"></div>
+  <div class="cart-drawer" id="cart-drawer">
+    <div class="cart-header">
+      <h3>Shopping Cart</h3>
+      <button class="cart-close-btn" id="cart-close-btn" aria-label="Close Cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="1.5">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="cart-items-list" id="cart-items-list">
+      <!-- Default Empty State -->
+      <div class="cart-empty-message" id="cart-empty-message">Your shopping cart is currently empty.</div>
+    </div>
+    
+    <div class="cart-footer">
+      <div class="cart-summary-row">
+        <span class="cart-summary-label">Subtotal</span>
+        <span class="cart-summary-value" id="cart-subtotal">$0.00</span>
+      </div>
+      <div class="checkout-status" id="checkout-status" role="status" aria-live="polite"></div>
+      <div class="paypal-button-container" id="paypal-button-container"></div>
+      <button class="btn-checkout" id="checkout-btn" disabled>
+        PayPal Checkout
+      </button>
+    </div>
+  </div>
+
+  <!-- Checkout Success Modal Overlay -->
+  <div class="success-modal-overlay" id="success-modal-overlay">
+    <div class="success-modal-content">
+      <svg class="success-modal-icon" viewBox="0 0 24 24">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      <h4 class="success-modal-title" id="success-modal-title">Purchase Successful</h4>
+      <p class="success-modal-message" id="success-modal-message">Thank you for supporting Beau Thompson's studio! Your PayPal payment has been captured successfully.</p>
+      <button class="success-modal-btn" id="success-modal-close-btn">Return to Shop</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container footer-content">
+      <span class="footer-copy">&copy; 2026 Beau Thompson. All rights reserved.</span>
+      <ul class="footer-social">
+        <li><a href="index.html">Portfolio</a></li>
+        <li><a href="https://www.instagram.com/archoneye/" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+        <li><a href="mailto:info@beaurancethompson.com">Email</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script>
+    window.PAYPAL_CONFIG = {
+      clientId: 'YOUR_PAYPAL_CLIENT_ID',
+      currency: 'USD',
+      intent: 'capture'
+    };
+  </script>
+  <script src="shop.js" defer></script>
+</body>
+</html>

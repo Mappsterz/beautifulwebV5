@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script>
+    (function () {
+      if (!location.hostname.endsWith('github.io')) return;
+      var segment = location.pathname.split('/').filter(Boolean)[0];
+      if (!segment || segment.includes('.')) return;
+      var base = document.createElement('base');
+      base.href = '/' + segment + '/';
+      document.head.insertBefore(base, document.head.firstChild);
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beau Thompson | Fine Art Portfolio</title>
+  <meta name="description" content="Official art portfolio of Beau Thompson — contemporary paintings, drawings, and sculptures exploring classical subjects through a modern visual language.">
+  <meta name="theme-color" content="#f5f0ea">
+  <meta name="author" content="Beau Thompson">
+
+  <!-- Replace with the production domain before launch -->
+  <link rel="canonical" href="https://beaurancethompson.com/">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap">
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="assets/highland-cow.webp">
+
+  <meta property="og:title" content="Beau Thompson | Fine Art Portfolio">
+  <meta property="og:description" content="Contemporary paintings, drawings, and sculptures by Beau Thompson.">
+  <meta property="og:image" content="assets/crab-cigarette.webp">
+  <meta property="og:image:alt" content="The Smoking Crab — oil painting by Beau Thompson">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://beaurancethompson.com/">
+  <meta property="og:site_name" content="Beau Thompson">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Beau Thompson | Fine Art Portfolio">
+  <meta name="twitter:description" content="Contemporary paintings, drawings, and sculptures by Beau Thompson.">
+  <meta name="twitter:image" content="assets/crab-cigarette.webp">
+
+  <link rel="stylesheet" href="style.css?v=8">
+  <link rel="preload" as="image" href="assets/crab-cigarette.webp" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/highland-cow.webp">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VisualArtist",
+    "name": "Beau Thompson",
+    "url": "https://beaurancethompson.com/",
+    "sameAs": ["https://www.instagram.com/archoneye/"],
+    "email": "info@beaurancethompson.com",
+    "jobTitle": "Contemporary Artist",
+    "knowsAbout": ["Oil Painting", "Charcoal Drawing", "Mixed Media Sculpture"]
+  }
+  </script>
+</head>
+<body>
+
+  <a href="#gallery" class="skip-link">Skip to works</a>
+
+  <!-- Header & Navigation -->
+  <header id="header">
+    <div class="container nav-container">
+      <a href="#home" class="logo">BEAU THOMPSON</a>
+      <button class="menu-toggle" id="menu-toggle" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-overlay" id="nav-overlay"></div>
+      <div class="nav-wrapper" id="nav-wrapper">
+        <nav>
+          <ul>
+            <li><a href="#gallery" class="nav-link">Works</a></li>
+            <li><a href="#about" class="nav-link">About</a></li>
+            <li><a href="#contact" class="nav-link">Contact</a></li>
+            <li><a href="shop.html" class="nav-link">Shop</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section id="home" class="hero">
+    <div class="hero-bg" aria-hidden="true">
+      <div class="hero-slides" id="hero-slides">
+        <img src="assets/crab-cigarette.webp" data-src="assets/crab-cigarette.webp" alt="" class="hero-slide is-visible" data-title="The Smoking Crab" data-meta="Oil on Canvas" fetchpriority="high" decoding="async">
+        <img src="assets/highland-cow.webp" data-src="assets/highland-cow.webp" alt="" class="hero-slide" data-title="Untitled (Highland Cow)" data-meta="Oil on Canvas" decoding="async">
+        <img src="assets/pearl-oyster-1.webp" data-src="assets/pearl-oyster-1.webp" alt="" class="hero-slide" data-title="Untitled (Pearl & Oyster)" data-meta="Oil on Canvas" decoding="async">
+        <img src="assets/starry-bison.webp" data-src="assets/starry-bison.webp" alt="" class="hero-slide hero-slide--bison" data-title="Untitled (Starry Bison)" data-meta="Oil on Canvas" decoding="async">
+        <img src="assets/drawing-1.webp" data-src="assets/drawing-1.webp" alt="" class="hero-slide" data-title="Untitled (Reclining with Fan)" data-meta="Charcoal on Paper" decoding="async">
+        <img src="assets/petri.webp" data-src="assets/petri.webp" alt="" class="hero-slide" data-title="Petri" data-meta="Steel &amp; Perforated Metal" decoding="async">
+      </div>
+    </div>
+    <div class="hero-content">
+      <h2>Beau Thompson</h2>
+      <p class="hero-tagline">Paintings &bull; Drawings &bull; Sculptures</p>
+      <div class="hero-actions">
+        <a href="#gallery" class="hero-btn hero-btn-primary">View Gallery</a>
+        <a href="shop.html" class="hero-btn hero-btn-secondary">Visit Shop</a>
+      </div>
+    </div>
+    <a href="#gallery" class="hero-scroll" aria-label="Scroll to gallery">
+      <span>Scroll</span>
+      <span class="hero-scroll-line"></span>
+    </a>
+    <figcaption class="hero-caption" id="hero-caption" aria-live="polite">
+      <span class="hero-caption-label">Featured Work</span>
+      <span class="hero-caption-title" id="hero-caption-title"></span>
+      <span class="hero-caption-meta" id="hero-caption-meta"></span>
+    </figcaption>
+  </section>
+
+  <!-- Gallery Section -->
+  <section id="gallery">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-num">01 / Gallery</span>
+        <h3 class="section-title">Selected Works</h3>
+      </div>
+
+      <!-- Category Filter Tabs -->
+      <ul class="gallery-filters">
+        <li><button class="filter-btn active" data-filter="all">All</button></li>
+        <li><button class="filter-btn" data-filter="paintings">Paintings</button></li>
+        <li><button class="filter-btn" data-filter="drawings">Drawings</button></li>
+        <li><button class="filter-btn" data-filter="sculptures">Sculptures</button></li>
+      </ul>
+
+      <ul class="gallery-subfilters" id="gallery-subfilters" hidden>
+        <li><button class="subfilter-btn active" data-subfilter="all">All</button></li>
+      </ul>
+
+      <!-- Gallery Grid -->
+      <div class="gallery-grid" id="gallery-grid">
+        
+        <!-- Painting: Highland Cow -->
+        <div class="art-card" data-category="paintings" data-subcategory="animals" data-availability="print-available" data-statement="Apparel and studio prints adapted from this painting are available in the Shop.">
+          <div class="art-image-wrapper art-image-wrapper--highland-cow">
+            <picture>
+              <source srcset="assets/highland-cow.webp" type="image/webp">
+              <img src="assets/highland-cow.webp" alt="Untitled (Highland Cow) - Impressionistic oil painting of a highland cow by Beau Thompson" loading="lazy" decoding="async">
+            </picture>
+            <span class="art-availability" data-status="print-available">Print Available</span>
+          </div>
+          <div class="art-info">
+            <div class="art-title-row">
+              <h4 class="art-title">Untitled (Highland Cow)</h4>
+              <span class="art-year">2026</span>
+            </div>
+            <span class="art-meta">Oil on Canvas</span>
+          </div>
+        </div>
+
+        <!-- Active Artwork: The Smoking Crab -->
+        <div class="art-card" data-category="paintings" data-subcategory="animals" data-availability="inquire">
+          <div class="art-image-wrapper art-image-wrapper--crab">
+            <picture>
+              <source srcset="assets/crab-cigarette.webp" type="image/webp">
+              <img src="assets/crab-cigarette.webp" alt="The Smoking Crab - Oil painting of a blue crab smoking a cigarette by Beau Thompson" loading="lazy" decoding="async">
+            </picture>
+          </div>
+          <div class="art-info">
+            <div class="art-title-row">
+              <h4 class="art-title">The Smoking Crab</h4>
+              <span class="art-year">2026</span>
+            </div>
+            <span class="art-meta">Oil on Canvas &bull; 24 × 30 in</span>
+          </div>
+        </div>
+
+        <!-- Painting: Pearl & Oyster -->
+        <div class="art-card art-card--series" data-category="paintings" data-subcategory="portraits" data-availability="inquire" data-gallery='[{"src":"assets/pearl-oyster-1.webp","title":"Untitled (Pearl & Oyster)","meta":"Oil on Canvas"},{"src":"assets/pearl-oyster-2.webp","title":"Untitled (Pearl & Oyster) II","meta":"Oil on Canvas"}]'>
+          <div class="art-image-wrapper">
+            <picture>
+              <source srcset="assets/pearl-oyster-1.webp" type="image/webp">
+              <img src="assets/pearl-oyster-1.webp" alt="Untitled (Pearl & Oyster) - Portrait with pearl and oyster shell by Beau Thompson" loading="lazy" decoding="async">
+            </picture>
+            <span class="art-gallery-badge">2 views</span>
+          </div>
+          <div class="art-info">
+            <div class="art-title-row">
+              <h4 class="art-title">Untitled (Pearl & Oyster)</h4>
+              <span class="art-year">2026</span>
+            </div>
+            <span class="art-meta">Oil on Canvas</span>
+          </div>
+        </div>
+
+        <!-- Painting: Green Converse -->
+        <div class="art-card" data-category="paintings" data-subcategory="objects" data-availability="inquire">
+          <div class="art-image-wrapper">
+            <picture>
+              <source srcset="assets/converse-pink.webp" type="image/webp">
+              <img src="assets/converse-pink.webp" alt="Untitled (Green Converse) - Painting of green high-top sneakers by Beau Thompson" loading="lazy" decoding="async">
+            </picture>
+          </div>
+          <div class="art-info">
+            <div class="art-title-row">
+              <h4 class="art-title">Untitled (Green Converse)</h4>
+              <span class="art-year">2026</span>
+            </div>
+            <span class="art-meta">Oil on Canvas</span>
+          </div>
+        </div>
+
+        <!-- Painting: Green Converse II -->
+        <div class="art-card" data-category="paintings" data-subcategory="objects" data-availability="inquire">
+          <div class="art-image-wrapper">
+            <picture>
+              <source srcset="assets/converse-gold.webp" type="image/webp">
+              <img src="assets/converse-gold.webp" alt="Untitled (Green Converse) II - Painting of green high-top sneakers by Beau Thompson" loading="lazy" decoding="async">
+            </picture>
+          </div>
+          <div class="art-info">
+            <div class="art-title-row">
+              <h4 class="art-title">Untitled (Green Converse) II</h4>
+              <span class="art-year">2026</span>
+            </div>
+            <span class="art-meta">Oil on Canvas</span>
+          </div>
+        </div>
+
+        <!-- Painting: Starry Bison -->
+        <div class="art-card" data-category="paintings" data-subcategory="animals" data-availability="inquire">
+          <div class="art-image-wrapper">
+            <picture>
+              <source srcset="assets/starry-bison.webp" type="image/webp">
+              <img src="assets/starry-bison.webp" alt="Untitled (Starry Bison) - Van Gogh-inspired bison portrait by Beau Thompson" loading="lazy" decoding="async">
+            </picture>
+          </div>
+          <div class="art-info">
+            <div class="art-title-row">
+              <h4 class="art-title">Untitled (Starry Bison)</h4>
+              <span class="art-year">2026</span>
+            </div>
+            <span class="art-meta">Oil on Canvas</span>
+          </div>
+        </div>
+
+        <!-- Drawing 1: Reclining with Fan -->
+        <div class="art-card" data-category="drawings" data-availability="inquire">
+          <div class="art-image-wrapper art-image-wrapper--fan">
+            <picture>
+              <source srcset="assets/drawing-1.webp" type="image/webp">
+              <img src="assets/drawing-1.webp" alt="Untitled (Reclining with Fan) - Charcoal drawing of a person resting near a fan by Beau Thompson" loading="lazy" decoding="async">
+            </picture>
+          </div>
+          <div class="art-info">
+            <div class="art-title-row">
+              <h4 class="art-title">Untitled (Reclining with Fan)</h4>
+              <span class="art-year">2026</span>
+            </div>
+            <span class="art-meta">Charcoal on Paper &bull; 18 × 24 in</span>
+          </div>
+        </div>
+
+        <!-- Sculpture Group: Branch & Lace -->
+        <div class="gallery-cluster" data-category="sculptures" data-subcategory="assemblage">
+          <span class="gallery-cluster-label">Branch &amp; Lace</span>
+          <div class="gallery-cluster-grid">
+            <div class="art-card art-card--series" data-category="sculptures" data-subcategory="assemblage" data-availability="inquire" data-gallery='[{"src":"assets/sculpture-1.webp","title":"Untitled (Branch & Lace)","meta":"Branches, Lace, Metal Chain • 36 × 32 × 12 in"},{"src":"assets/sculpture-1-detail.webp","title":"Untitled (Branch & Lace) – Detail","meta":"Detail View • Close-up"}]'>
+              <div class="art-image-wrapper">
+                <picture>
+                  <source srcset="assets/sculpture-1.webp" type="image/webp">
+                  <img src="assets/sculpture-1.webp" alt="Untitled (Branch & Lace) - Mixed media sculpture by Beau Thompson" loading="lazy" decoding="async">
+                </picture>
+                <span class="art-gallery-badge">2 views</span>
+              </div>
+              <div class="art-info">
+                <div class="art-title-row">
+                  <h4 class="art-title">Untitled (Branch & Lace)</h4>
+                  <span class="art-year">2026</span>
+                </div>
+                <span class="art-meta">Branches, Lace, Metal Chain &bull; 36 × 32 × 12 in</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sculpture Group: Pill Assemblage -->
+        <div class="gallery-cluster" data-category="sculptures" data-subcategory="assemblage">
+          <span class="gallery-cluster-label">Pill Assemblage</span>
+          <div class="gallery-cluster-grid">
+            <div class="art-card art-card--series" data-category="sculptures" data-subcategory="assemblage" data-availability="inquire" data-gallery='[{"src":"assets/sculpture-pills-1.webp","title":"Untitled (Pill Assemblage)","meta":"Wax, Prescription Bottles, Pins • Mixed media"},{"src":"assets/sculpture-pills-2.webp","title":"Untitled (Pill Assemblage) II","meta":"Wax, Prescription Bottles, Pins • Mixed media"}]'>
+              <div class="art-image-wrapper">
+                <picture>
+                  <source srcset="assets/sculpture-pills-1.webp" type="image/webp">
+                  <img src="assets/sculpture-pills-1.webp" alt="Untitled (Pill Assemblage) - Wax and prescription bottle sculpture by Beau Thompson" loading="lazy" decoding="async">
+                </picture>
+                <span class="art-gallery-badge">2 views</span>
+              </div>
+              <div class="art-info">
+                <div class="art-title-row">
+                  <h4 class="art-title">Untitled (Pill Assemblage)</h4>
+                  <span class="art-year">2026</span>
+                </div>
+                <span class="art-meta">Wax, Prescription Bottles, Pins &bull; Mixed media</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sculpture Group: Petri -->
+        <div class="gallery-cluster" data-category="sculptures" data-subcategory="wall-works">
+          <span class="gallery-cluster-label">Petri</span>
+          <div class="gallery-cluster-grid">
+            <div class="art-card art-card--series" data-category="sculptures" data-subcategory="wall-works" data-availability="inquire" data-gallery='[{"src":"assets/petri.webp","title":"Petri","meta":"Steel, Perforated Metal, Wire • Wall-mounted"},{"src":"assets/petri-detail.webp","title":"Petri – Detail","meta":"Detail View • Perforated metal & steel"}]'>
+              <div class="art-image-wrapper">
+                <picture>
+                  <source srcset="assets/petri.webp" type="image/webp">
+                  <img src="assets/petri.webp" alt="Petri - Wall-mounted steel and perforated metal sculpture by Beau Thompson" loading="lazy" decoding="async">
+                </picture>
+                <span class="art-gallery-badge">2 views</span>
+              </div>
+              <div class="art-info">
+                <div class="art-title-row">
+                  <h4 class="art-title">Petri</h4>
+                  <span class="art-year">2026</span>
+                </div>
+                <span class="art-meta">Steel, Perforated Metal, Wire &bull; Wall-mounted</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sculpture Group: Oblisque -->
+        <div class="gallery-cluster" data-category="sculptures" data-subcategory="freestanding">
+          <span class="gallery-cluster-label">Oblisque</span>
+          <div class="gallery-cluster-grid">
+            <div class="art-card" data-category="sculptures" data-subcategory="freestanding" data-availability="inquire">
+              <div class="art-image-wrapper">
+                <picture>
+                  <source srcset="assets/oblisque.webp" type="image/webp">
+                  <img src="assets/oblisque.webp" alt="Oblisque - Dark metal obelisk sculpture with circular void by Beau Thompson" loading="lazy" decoding="async">
+                </picture>
+              </div>
+              <div class="art-info">
+                <div class="art-title-row">
+                  <h4 class="art-title">Oblisque</h4>
+                  <span class="art-year">2026</span>
+                </div>
+                <span class="art-meta">Patinated Steel &bull; Geometric obelisk</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Shop Banner -->
+  <section class="featured-banner reveal">
+    <div class="container featured-banner-inner">
+      <div class="featured-banner-image">
+        <picture>
+          <source srcset="assets/highland-cow.webp" type="image/webp">
+          <img src="assets/highland-cow.webp" alt="Untitled (Highland Cow) — featured studio print" loading="lazy" decoding="async">
+        </picture>
+      </div>
+      <div class="featured-banner-text">
+        <span class="section-num">Limited Editions</span>
+        <h3>Studio Prints &amp; Merchandise</h3>
+        <p>Archival prints, exhibition posters, and select studio wares — available in limited quantities from the official shop.</p>
+        <a href="shop.html" class="featured-banner-link">Browse the Shop</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-num">02 / About</span>
+        <h3 class="section-title">The Artist</h3>
+      </div>
+
+      <div class="about-layout reveal">
+        <div class="about-visual">
+          <picture>
+            <source srcset="assets/artist.webp" type="image/webp">
+            <img src="assets/artist.webp" alt="Beau Thompson — artist portrait" loading="lazy" decoding="async">
+          </picture>
+        </div>
+
+        <div class="about-text">
+          <h4 class="about-tagline">Beau Thompson is a contemporary artist based in the United States, exploring visual metaphors through light and shadow.</h4>
+          <div class="about-bio">
+            <p>Through an expressive command of medium and color, Beau Thompson investigates the intersection of classical subjects and modern visual sensibilities. Her paintings invite viewers into narratives that are at once familiar and surreal, capturing moments of quiet tension and whimsical subversion.</p>
+            <p>Using oil on canvas as a primary voice, Beau’s work highlights rich texture, bold brushwork, and saturated color palettes. She aims to break down the boundaries between fine art conventions and pop-culture motifs, constructing scenes that trigger curiosity and emotional resonance.</p>
+            <p><em>This portfolio represents the foundation of a growing body of work. New paintings, graphite drawings, and bronze studies will be populated here as they emerge from the studio.</em></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-num">03 / Contact</span>
+        <h3 class="section-title">Get In Touch</h3>
+      </div>
+
+      <div class="contact-layout reveal">
+        <div class="contact-info">
+          <h4 class="contact-statement">For inquiries, commission requests, or studio visits, please write a message or get in touch directly.</h4>
+          <div class="contact-details">
+            <div class="contact-item">
+              <span class="contact-label">Email</span>
+              <span class="contact-value"><a href="mailto:info@beaurancethompson.com">info@beaurancethompson.com</a></span>
+            </div>
+            <div class="contact-item">
+              <span class="contact-label">Instagram</span>
+              <span class="contact-value"><a href="https://www.instagram.com/archoneye/" target="_blank" rel="noopener noreferrer">@archoneye</a></span>
+            </div>
+            <div class="contact-item">
+              <span class="contact-label">Location</span>
+              <span class="contact-value">United States</span>
+            </div>
+          </div>
+        </div>
+
+        <!--
+          To enable real submissions, set data-endpoint on the form below to your
+          Formspree (https://formspree.io/f/yourId), Basin, or Netlify Forms URL.
+          When the attribute is empty the form falls back to a local simulation.
+        -->
+        <form class="contact-form" id="contact-form" data-endpoint="" method="POST" novalidate>
+          <div class="form-group">
+            <input type="text" id="name" name="name" class="form-input" placeholder=" " required autocomplete="name">
+            <label for="name" class="form-label">Name</label>
+          </div>
+          
+          <div class="form-group">
+            <input type="email" id="email" name="email" class="form-input" placeholder=" " required autocomplete="email">
+            <label for="email" class="form-label">Email Address</label>
+          </div>
+
+          <div class="form-group">
+            <input type="text" id="subject" name="subject" class="form-input" placeholder=" ">
+            <label for="subject" class="form-label">Subject</label>
+          </div>
+
+          <div class="form-group">
+            <textarea id="message" name="message" class="form-input" placeholder=" " required></textarea>
+            <label for="message" class="form-label">Message</label>
+          </div>
+
+          <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" class="form-honeypot">
+
+          <button type="submit" class="submit-btn">Send Message</button>
+          <div class="form-message" id="form-message">Thank you. Your message has been sent successfully.</div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Lightbox Modal -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Artwork viewer">
+    <div class="lightbox-content">
+      <button class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Previous artwork">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+      <button class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Next artwork">
+        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
+      <button class="lightbox-close" id="lightbox-close" aria-label="Close Lightbox">
+        <svg viewBox="0 0 24 24" fill="none">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div class="lightbox-image-wrapper">
+        <img src="" alt="" class="lightbox-image" id="lightbox-image">
+      </div>
+      <div class="lightbox-details">
+        <h4 class="lightbox-title" id="lightbox-title"></h4>
+        <span class="lightbox-meta" id="lightbox-meta"></span>
+        <span class="lightbox-availability" id="lightbox-availability"></span>
+        <p class="lightbox-statement" id="lightbox-statement"></p>
+        <span class="lightbox-counter" id="lightbox-counter"></span>
+        <div class="lightbox-thumbs" id="lightbox-thumbs"></div>
+        <a href="#contact" class="lightbox-inquire-btn" id="lightbox-inquire-btn">Inquire about this work</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container footer-content">
+      <span class="footer-copy">&copy; 2026 Beau Thompson. All rights reserved.</span>
+      <ul class="footer-social">
+        <li><a href="shop.html">Shop</a></li>
+        <li><a href="https://www.instagram.com/archoneye/" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+        <li><a href="mailto:info@beaurancethompson.com">Email</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></svg>
+  </button>
+
+  <script src="app.js?v=5" defer></script>
+</body>
+</html>

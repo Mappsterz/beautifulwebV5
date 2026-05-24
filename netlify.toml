@@ -1,0 +1,19 @@
+[[redirects]]
+  from = "/api/paypal/create-order"
+  to = "/.netlify/functions/paypal-create-order"
+  status = 200
+
+[[redirects]]
+  from = "/api/paypal/capture-order"
+  to = "/.netlify/functions/paypal-capture-order"
+  status = 200
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.{css,js,svg}"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
