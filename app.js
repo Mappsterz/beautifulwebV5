@@ -18,21 +18,94 @@ document.addEventListener('DOMContentLoaded', () => {
   const menuToggle = document.getElementById('menu-toggle');
   const navWrapper = document.getElementById('nav-wrapper');
   const navOverlay = document.getElementById('nav-overlay');
+  const mainContent = document.getElementById('site-main');
+  const focusableSelector = [
+    'a[href]',
+    'button:not([disabled])',
+    'textarea:not([disabled])',
+    'input:not([disabled])',
+    'select:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])'
+  ].join(',');
+  let scrollLockDepth = 0;
+  let savedScrollY = 0;
+  let lastMenuFocusedElement = null;
+  let lastLightboxFocusedElement = null;
+
+  function lockPageScroll() {
+    if (scrollLockDepth === 0) {
+      savedScrollY = window.scrollY || window.pageYOffset || 0;
+      document.body.style.top = `-${savedScrollY}px`;
+      document.body.classList.add('scroll-locked');
+    }
+    scrollLockDepth += 1;
+  }
+
+  function unlockPageScroll() {
+    if (scrollLockDepth === 0) return;
+    scrollLockDepth -= 1;
+    if (scrollLockDepth > 0) return;
+    document.body.classList.remove('scroll-locked');
+    document.body.style.top = '';
+    window.scrollTo(0, savedScrollY);
+  }
+
+  function trapFocus(container, event) {
+    if (!container) return;
+    const focusable = Array.from(container.querySelectorAll(focusableSelector))
+      .filter((el) => !el.hasAttribute('hidden'));
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  function setMainHidden(hidden) {
+    const nodes = [mainContent, document.querySelector('footer'), document.getElementById('back-to-top')];
+    nodes.filter(Boolean).forEach((node) => {
+      node.setAttribute('aria-hidden', hidden ? 'true' : 'false');
+      node.inert = hidden;
+    });
+  }
+
+  function syncMainHiddenState() {
+    const menuOpen = navWrapper?.classList.contains('open');
+    const lightboxOpen = document.getElementById('lightbox')?.classList.contains('active');
+    setMainHidden(Boolean(menuOpen || lightboxOpen));
+  }
 
   function closeMenu() {
+    const wasOpen = navWrapper?.classList.contains('open');
     menuToggle?.classList.remove('active');
     navWrapper?.classList.remove('open');
     navOverlay?.classList.remove('active');
+    unlockPageScroll();
     document.body.classList.remove('menu-open');
     menuToggle?.setAttribute('aria-expanded', 'false');
+    menuToggle?.setAttribute('aria-label', 'Open menu');
+    if (wasOpen && lastMenuFocusedElement instanceof HTMLElement) {
+      lastMenuFocusedElement.focus();
+    }
+    syncMainHiddenState();
   }
 
   function openMenu() {
+    lastMenuFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     menuToggle?.classList.add('active');
     navWrapper?.classList.add('open');
     navOverlay?.classList.add('active');
+    lockPageScroll();
     document.body.classList.add('menu-open');
     menuToggle?.setAttribute('aria-expanded', 'true');
+    menuToggle?.setAttribute('aria-label', 'Close menu');
+    navWrapper?.querySelector('a, button')?.focus();
+    syncMainHiddenState();
   }
 
   menuToggle?.addEventListener('click', () => {
@@ -48,6 +121,18 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', closeMenu);
   });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (navWrapper?.classList.contains('open')) closeMenu();
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768 && navWrapper?.classList.contains('open')) {
+      closeMenu();
+    }
+  }, { passive: true });
+  syncMainHiddenState();
 
   // ==========================================
   // Header Scroll Effect
@@ -69,6 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const heroCaption = document.getElementById('hero-caption');
   const heroCaptionTitle = document.getElementById('hero-caption-title');
   const heroCaptionMeta = document.getElementById('hero-caption-meta');
+  const heroScrollLink = document.querySelector('.hero-scroll');
   let heroIndex = 0;
   let heroTimer = null;
   let heroCaptionTimer = null;
@@ -275,6 +361,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   initHero();
+
+  if (heroScrollLink) {
+    heroScrollLink.addEventListener('click', (event) => {
+      const targetId = heroScrollLink.getAttribute('href');
+      if (!targetId || !targetId.startsWith('#')) return;
+      const target = document.querySelector(targetId);
+      if (!target) return;
+
+      event.preventDefault();
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      target.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
+    });
+  }
 
   // ==========================================
   // Scroll Reveal
@@ -606,9 +705,12 @@ document.addEventListener('DOMContentLoaded', () => {
     currentCardIndex = ((cardIndex % cards.length) + cards.length) % cards.length;
     fillLightbox(cards[currentCardIndex], slideIndex);
 
+    lastLightboxFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     lightbox.classList.add('active');
     lightbox.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
+    lockPageScroll();
+    lightboxClose?.focus();
+    syncMainHiddenState();
   }
 
   function goNext() {
@@ -652,10 +754,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const closeLightbox = () => {
     if (!lightbox) return;
+    const wasOpen = lightbox.classList.contains('active');
 
     lightbox.classList.remove('active');
     lightbox.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
+    unlockPageScroll();
+    if (wasOpen && lastLightboxFocusedElement instanceof HTMLElement) {
+      lastLightboxFocusedElement.focus();
+    }
+    syncMainHiddenState();
     setTimeout(() => {
       if (lightboxThumbs) {
         lightboxThumbs.innerHTML = '';
@@ -685,11 +792,36 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab' && navWrapper?.classList.contains('open')) {
+      trapFocus(navWrapper, e);
+      return;
+    }
+
     if (!lightbox.classList.contains('active')) return;
+    if (e.key === 'Tab') {
+      trapFocus(lightbox, e);
+      return;
+    }
     if (e.key === 'Escape') closeLightbox();
     if (e.key === 'ArrowLeft') goPrev();
     if (e.key === 'ArrowRight') goNext();
   });
+
+  let lightboxTouchStartX = 0;
+
+  lightbox?.addEventListener('touchstart', (e) => {
+    if (!lightbox.classList.contains('active')) return;
+    lightboxTouchStartX = e.changedTouches[0]?.screenX ?? 0;
+  }, { passive: true });
+
+  lightbox?.addEventListener('touchend', (e) => {
+    if (!lightbox.classList.contains('active')) return;
+    const touchEndX = e.changedTouches[0]?.screenX ?? 0;
+    const diff = lightboxTouchStartX - touchEndX;
+    if (Math.abs(diff) < 56) return;
+    if (diff > 0) goNext();
+    else goPrev();
+  }, { passive: true });
 
   lightboxInquireBtn?.addEventListener('click', (e) => {
     const action = lightboxInquireBtn.dataset.action || 'inquire';

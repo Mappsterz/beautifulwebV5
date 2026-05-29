@@ -15,13 +15,96 @@ document.addEventListener('DOMContentLoaded', () => {
   const menuToggle = document.getElementById('menu-toggle');
   const navWrapper = document.getElementById('nav-wrapper');
   const navOverlay = document.getElementById('nav-overlay');
+  const mainContent = document.getElementById('site-main');
+  const focusableSelector = [
+    'a[href]',
+    'button:not([disabled])',
+    'textarea:not([disabled])',
+    'input:not([disabled])',
+    'select:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])'
+  ].join(',');
+  let scrollLockDepth = 0;
+  let savedScrollY = 0;
+  let lastMenuFocusedElement = null;
+  let lastCartFocusedElement = null;
+  let lastProductModalFocusedElement = null;
+
+  function lockPageScroll() {
+    if (scrollLockDepth === 0) {
+      savedScrollY = window.scrollY || window.pageYOffset || 0;
+      document.body.style.top = `-${savedScrollY}px`;
+      document.body.classList.add('scroll-locked');
+    }
+    scrollLockDepth += 1;
+  }
+
+  function unlockPageScroll() {
+    if (scrollLockDepth === 0) return;
+    scrollLockDepth -= 1;
+    if (scrollLockDepth > 0) return;
+    document.body.classList.remove('scroll-locked');
+    document.body.style.top = '';
+    window.scrollTo(0, savedScrollY);
+  }
+
+  function trapFocus(container, event) {
+    if (!container) return;
+    const focusable = Array.from(container.querySelectorAll(focusableSelector))
+      .filter((el) => !el.hasAttribute('hidden'));
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  function setMainHidden(hidden) {
+    const nodes = [mainContent, document.querySelector('footer')];
+    nodes.filter(Boolean).forEach((node) => {
+      node.setAttribute('aria-hidden', hidden ? 'true' : 'false');
+      node.inert = hidden;
+    });
+  }
+
+  function syncMainHiddenState() {
+    const menuOpen = navWrapper?.classList.contains('open');
+    const cartOpen = document.getElementById('cart-drawer')?.classList.contains('active');
+    const productOpen = document.getElementById('product-modal-overlay')?.classList.contains('active');
+    setMainHidden(Boolean(menuOpen || cartOpen || productOpen));
+  }
 
   function closeMenu() {
+    const wasOpen = navWrapper?.classList.contains('open');
     menuToggle?.classList.remove('active');
     navWrapper?.classList.remove('open');
     navOverlay?.classList.remove('active');
+    unlockPageScroll();
     document.body.classList.remove('menu-open');
     menuToggle?.setAttribute('aria-expanded', 'false');
+    menuToggle?.setAttribute('aria-label', 'Open menu');
+    if (wasOpen && lastMenuFocusedElement instanceof HTMLElement) {
+      lastMenuFocusedElement.focus();
+    }
+    syncMainHiddenState();
+  }
+
+  function openMenu() {
+    lastMenuFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    menuToggle.classList.add('active');
+    navWrapper?.classList.add('open');
+    navOverlay?.classList.add('active');
+    lockPageScroll();
+    document.body.classList.add('menu-open');
+    menuToggle.setAttribute('aria-expanded', 'true');
+    menuToggle.setAttribute('aria-label', 'Close menu');
+    navWrapper?.querySelector('a, button')?.focus();
+    syncMainHiddenState();
   }
 
   menuToggle?.addEventListener('click', () => {
@@ -29,11 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isOpen) {
       closeMenu();
     } else {
-      menuToggle.classList.add('active');
-      navWrapper?.classList.add('open');
-      navOverlay?.classList.add('active');
-      document.body.classList.add('menu-open');
-      menuToggle.setAttribute('aria-expanded', 'true');
+      openMenu();
     }
   });
 
@@ -41,6 +120,18 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', closeMenu);
   });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (navWrapper?.classList.contains('open')) closeMenu();
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768 && navWrapper?.classList.contains('open')) {
+      closeMenu();
+    }
+  }, { passive: true });
+  syncMainHiddenState();
 
   // --- Scroll Reveal ---
   const revealElements = document.querySelectorAll('.reveal');
@@ -127,18 +218,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Cart Drawer Toggles ---
   function openCart() {
+    lastCartFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     cartDrawer.classList.add('active');
     cartOverlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    lockPageScroll();
     initPayPalCheckout();
+    cartCloseBtn?.focus();
+    syncMainHiddenState();
   }
 
   function closeCart() {
+    if (!cartDrawer.classList.contains('active')) return;
     cartDrawer.classList.remove('active');
     cartOverlay.classList.remove('active');
-    if (!productModalOverlay?.classList.contains('active')) {
-      document.body.style.overflow = '';
+    unlockPageScroll();
+    if (lastCartFocusedElement instanceof HTMLElement) {
+      lastCartFocusedElement.focus();
     }
+    syncMainHiddenState();
   }
 
   cartNavBtn.addEventListener('click', openCart);
@@ -146,14 +243,17 @@ document.addEventListener('DOMContentLoaded', () => {
   cartOverlay.addEventListener('click', closeCart);
 
   function closeProductModal() {
+    if (!productModalOverlay?.classList.contains('active')) return;
     productModalOverlay?.classList.remove('active');
     productModalOverlay?.setAttribute('aria-hidden', 'true');
     activeProductCard = null;
     activeProductGallery = [];
     activeProductGalleryIndex = 0;
-    if (!cartDrawer.classList.contains('active')) {
-      document.body.style.overflow = '';
+    unlockPageScroll();
+    if (lastProductModalFocusedElement instanceof HTMLElement) {
+      lastProductModalFocusedElement.focus();
     }
+    syncMainHiddenState();
   }
 
   function getProductGallery(card) {
@@ -262,10 +362,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderModalOptions(card);
 
+    lastProductModalFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     productModalOverlay.classList.add('active');
     productModalOverlay.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
+    lockPageScroll();
     productModalClose?.focus();
+    syncMainHiddenState();
   }
 
   productModalPrev?.addEventListener('click', (e) => {
@@ -283,7 +385,38 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target === productModalOverlay) closeProductModal();
   });
 
+  let productModalTouchStartX = 0;
+  productModal?.addEventListener('touchstart', (e) => {
+    if (!productModalOverlay?.classList.contains('active')) return;
+    productModalTouchStartX = e.changedTouches[0]?.screenX ?? 0;
+  }, { passive: true });
+
+  productModal?.addEventListener('touchend', (e) => {
+    if (!productModalOverlay?.classList.contains('active')) return;
+    if (activeProductGallery.length <= 1) return;
+    const touchEndX = e.changedTouches[0]?.screenX ?? 0;
+    const delta = productModalTouchStartX - touchEndX;
+    if (Math.abs(delta) < 56) return;
+    if (delta > 0) showProductGallerySlide(activeProductGalleryIndex + 1);
+    else showProductGallerySlide(activeProductGalleryIndex - 1);
+  }, { passive: true });
+
   document.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab' && productModalOverlay?.classList.contains('active')) {
+      trapFocus(productModal, e);
+      return;
+    }
+
+    if (e.key === 'Tab' && cartDrawer?.classList.contains('active')) {
+      trapFocus(cartDrawer, e);
+      return;
+    }
+
+    if (e.key === 'Tab' && navWrapper?.classList.contains('open')) {
+      trapFocus(navWrapper, e);
+      return;
+    }
+
     if (e.key === 'Escape') {
       closeProductModal();
       closeCart();
