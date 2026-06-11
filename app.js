@@ -151,6 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Hero Featured Works Rotation
   // ==========================================
   const heroSlides = document.querySelectorAll('.hero-slide');
+  const heroSlidesEl = document.getElementById('hero-slides');
   const heroCaption = document.getElementById('hero-caption');
   const heroCaptionTitle = document.getElementById('hero-caption-title');
   const heroCaptionMeta = document.getElementById('hero-caption-meta');
@@ -235,6 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const previous = heroSlides[previousIndex];
     heroTransitioning = true;
     heroIndex = index;
+    heroSlidesEl?.classList.add('is-transitioning');
 
     heroSlides.forEach((slide, i) => {
       if (i !== previousIndex && i !== index) {
@@ -259,6 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
         done = true;
         target.removeEventListener('animationend', onAnimationEnd);
         setHeroSlideClasses(index);
+        heroSlidesEl?.classList.remove('is-transitioning');
         heroTransitioning = false;
       };
     })();
@@ -301,6 +304,8 @@ document.addEventListener('DOMContentLoaded', () => {
     showHeroSlide(nextIndex);
   }
 
+  let heroInView = true;
+
   function startHeroRotation() {
     if (heroSlides.length <= 1) return;
     stopHeroRotation();
@@ -311,6 +316,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (heroTimer) {
       clearInterval(heroTimer);
       heroTimer = null;
+    }
+  }
+
+  // Only animate when the hero is actually on screen and the tab is visible —
+  // crossfading offscreen burns frame budget and causes a jank burst on return.
+  function syncHeroRotation() {
+    if (heroSlides.length <= 1) return;
+    if (heroInView && !document.hidden) {
+      startHeroRotation();
+    } else {
+      stopHeroRotation();
     }
   }
 
@@ -357,7 +373,20 @@ document.addEventListener('DOMContentLoaded', () => {
     showHeroSlide(heroIndex, { immediate: true });
     scheduleHeroCaptionEnter();
 
-    if (heroSlides.length > 1) startHeroRotation();
+    if (heroSlides.length > 1) {
+      syncHeroRotation();
+
+      document.addEventListener('visibilitychange', syncHeroRotation);
+
+      const heroSection = document.getElementById('home');
+      if (heroSection && 'IntersectionObserver' in window) {
+        const heroVisibilityObserver = new IntersectionObserver((entries) => {
+          heroInView = entries[0]?.isIntersecting ?? true;
+          syncHeroRotation();
+        }, { threshold: 0 });
+        heroVisibilityObserver.observe(heroSection);
+      }
+    }
   }
 
   initHero();

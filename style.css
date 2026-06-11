@@ -58,6 +58,13 @@ body {
   overflow-x: hidden;
 }
 
+/* Clip at the root too: off-canvas panels (cart drawer, mobile nav) are
+   position:fixed, so body's overflow-x:hidden can't contain them — without
+   this they extend the scroll width and cause a horizontal scroll on mobile. */
+html {
+  overflow-x: hidden;
+}
+
 body.menu-open {
   overflow: hidden;
 }
@@ -287,6 +294,8 @@ nav a.active::after, nav a:hover::after {
   position: absolute;
   inset: 0;
   isolation: isolate;
+  /* Isolate the slide stack so crossfade repaints never reflow/repaint the page. */
+  contain: layout paint;
 }
 
 .hero-slide {
@@ -298,6 +307,10 @@ nav a.active::after, nav a:hover::after {
   opacity: 0;
   z-index: 0;
   pointer-events: none;
+  /* Promote each slide to its own GPU layer so the crossfade is a cheap
+     compositor opacity blend instead of a full-viewport repaint each frame. */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .hero-slide.is-visible {
@@ -310,6 +323,12 @@ nav a.active::after, nav a:hover::after {
   opacity: 0;
   will-change: opacity;
   animation: heroCrossfade var(--duration-hero) linear forwards;
+}
+
+/* While a crossfade runs, hint the compositor on the outgoing layer too so
+   both sides of the blend stay off the main thread. JS toggles this class. */
+.hero-slides.is-transitioning .hero-slide.is-visible {
+  will-change: opacity;
 }
 
 @keyframes heroCrossfade {
@@ -362,7 +381,7 @@ html.is-loaded .hero-animate {
 
 .hero-slide--bison {
   object-position: center 46%;
-  transform: scale(1.12);
+  transform: scale(1.12) translateZ(0);
   transform-origin: center center;
 }
 
@@ -452,18 +471,24 @@ html.is-loaded .hero-animate {
   text-align: left;
   opacity: 0;
   pointer-events: none;
+  /* Keep the mid-crossfade text swap from triggering a page-level reflow. */
+  contain: layout paint;
+  /* Persistent compositor layer so the caption fade/slide runs on the GPU,
+     independent of the main thread doing image-crossfade work. */
+  transform: translate3d(0, 0, 0);
+  will-change: opacity, transform;
 }
 
 html.is-loaded .hero-caption.has-entered.active:not(.is-changing) {
   opacity: 1;
-  transform: translateY(0);
+  transform: translate3d(0, 0, 0);
   transition: opacity calc(var(--duration-hero) * 0.45) var(--ease-hero),
               transform calc(var(--duration-hero) * 0.45) var(--ease-hero);
 }
 
 .hero-caption.is-changing {
   opacity: 0;
-  transform: translateY(6px);
+  transform: translate3d(0, 6px, 0);
   transition: opacity calc(var(--duration-hero) * 0.45) var(--ease-hero),
               transform calc(var(--duration-hero) * 0.45) var(--ease-hero);
   transition-delay: 0ms;
@@ -888,7 +913,7 @@ picture {
 
 .about-tagline {
   font-family: var(--font-serif);
-  font-size: 2rem;
+  font-size: clamp(1.4rem, 5.5vw, 2rem);
   line-height: 1.3;
   color: var(--text-primary);
 }
@@ -923,7 +948,7 @@ picture {
 
 .contact-statement {
   font-family: var(--font-serif);
-  font-size: 1.75rem;
+  font-size: clamp(1.3rem, 5vw, 1.75rem);
   line-height: 1.4;
 }
 
@@ -1619,7 +1644,7 @@ footer {
   .hero-caption {
     left: 50%;
     bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
-    transform: translateX(-50%);
+    transform: translate3d(-50%, 0, 0);
     text-align: center;
     align-items: center;
     max-width: calc(100% - 2rem);
@@ -1627,11 +1652,11 @@ footer {
 
   html.is-loaded .hero-caption.hero-animate,
   html.is-loaded .hero-caption.has-entered.active:not(.is-changing) {
-    transform: translateX(-50%) translateY(0);
+    transform: translate3d(-50%, 0, 0);
   }
 
   .hero-caption.is-changing {
-    transform: translateX(-50%) translateY(6px);
+    transform: translate3d(-50%, 6px, 0);
   }
 
   .hero-scroll {
@@ -1865,15 +1890,6 @@ footer {
 
   .cart-items-list {
     padding: 1.5rem 1.25rem;
-  }
-
-  .shop-header-layout {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
-
-  .shop-header-image {
-    max-width: 280px;
   }
 
   .product-modal-overlay {
@@ -2330,17 +2346,35 @@ footer {
   border-bottom: none;
 }
 
+/* Mobile-first: single column by default, two columns on wider screens.
+   (The desktop two-column rule must live in a min-width query, not the base,
+   because this component is defined after the max-width:768px block — a base
+   two-column rule would override the mobile stack and overflow the viewport.) */
 .shop-header-layout {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 3rem;
+  grid-template-columns: 1fr;
+  gap: 2rem;
   align-items: center;
+}
+
+@media (min-width: 769px) {
+  .shop-header-layout {
+    grid-template-columns: 280px 1fr;
+    gap: 3rem;
+  }
 }
 
 .shop-header-image {
   aspect-ratio: 1;
   overflow: hidden;
   border: 1px solid var(--border-color);
+  max-width: 280px;
+}
+
+@media (min-width: 769px) {
+  .shop-header-image {
+    max-width: none;
+  }
 }
 
 .shop-header-image img {
