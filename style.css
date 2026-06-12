@@ -1924,17 +1924,6 @@ footer {
     height: 48px;
   }
 
-  .product-modal-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .product-modal-image {
-    border-right: none;
-    border-bottom: 1px solid var(--border-color);
-    min-height: 280px;
-    padding: 1.5rem;
-  }
-
   .product-modal-details {
     padding: 1.5rem;
   }
@@ -2423,6 +2412,64 @@ footer {
   color: var(--bg-primary);
 }
 
+/* Shop on Etsy CTA — replaces the old cart/checkout flow */
+.btn-etsy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: var(--accent);
+  color: var(--bg-primary);
+  border: 1px solid var(--accent);
+  padding: 0.85rem 1.6rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--duration-base) var(--ease-standard),
+              color var(--duration-base) var(--ease-standard);
+}
+
+.btn-etsy svg {
+  flex-shrink: 0;
+}
+
+.btn-etsy:hover {
+  background-color: transparent;
+  color: var(--accent);
+}
+
+.shop-header-text .btn-etsy {
+  margin-top: 1.75rem;
+}
+
+/* Full-width variant for the product modal */
+.btn-etsy--block {
+  width: 100%;
+  margin-top: 1.5rem;
+}
+
+/* Subtle prompt on each product card hinting at the detail modal */
+.product-cta-hint {
+  display: inline-block;
+  margin-top: 1.1rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.product-modal-fulfillment {
+  margin-top: 1.25rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
 /* Cart Side Drawer */
 .cart-overlay {
   position: fixed;
@@ -2784,22 +2831,39 @@ footer {
   border-color: var(--border-dark);
 }
 
+/* Mobile-first: stacked by default, side-by-side on wider screens. Defined
+   here (after the max-width:768px block) so the base must carry the mobile
+   layout — a base two-column rule would override the stack and cramp the
+   modal on phones. */
 .product-modal-layout {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 0;
 }
 
 .product-modal-image {
   background: #ffffff;
-  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
-  min-height: 420px;
+  padding: 1.5rem;
+  min-height: 280px;
   gap: 1rem;
+}
+
+@media (min-width: 769px) {
+  .product-modal-layout {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .product-modal-image {
+    border-right: 1px solid var(--border-color);
+    border-bottom: none;
+    padding: 2rem;
+    min-height: 420px;
+  }
 }
 
 .product-modal-image-stage {

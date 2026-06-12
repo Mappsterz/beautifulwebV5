@@ -40,7 +40,7 @@
   <meta name="twitter:description" content="Limited Highland Cow sweatshirts and tees printed from the original studio painting.">
   <meta name="twitter:image" content="assets/highland-cow-sweatshirt.png">
 
-  <link rel="stylesheet" href="style.css?v=19">
+  <link rel="stylesheet" href="style.css?v=20">
 
   <script type="application/ld+json">
   {
@@ -49,9 +49,8 @@
     "name": "Beau Thompson Studio Shop",
     "url": "https://beaurancethompson.com/shop.html",
     "image": "https://beaurancethompson.com/assets/highland-cow-sweatshirt.png",
-    "description": "Limited-run apparel and merchandise from the studio of Beau Thompson.",
-    "currenciesAccepted": "USD",
-    "paymentAccepted": "PayPal, Credit Card"
+    "description": "Limited-run apparel and merchandise from the studio of Beau Thompson, available on Etsy.",
+    "currenciesAccepted": "USD"
   }
   </script>
 </head>
@@ -64,16 +63,6 @@
     <div class="container nav-container">
       <a href="index.html" class="logo">BEAU THOMPSON</a>
       <div class="header-actions">
-        <button type="button" class="cart-nav-link header-cart-btn" id="cart-nav-btn" aria-label="Open shopping cart" aria-controls="cart-drawer">
-          <span class="cart-icon-container">
-            <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--text-secondary)" stroke-width="1.5" fill="none" aria-hidden="true">
-              <circle cx="9" cy="21" r="1"></circle>
-              <circle cx="20" cy="21" r="1"></circle>
-              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-            </svg>
-            <span class="cart-badge" id="cart-badge">0</span>
-          </span>
-        </button>
         <button class="menu-toggle" id="menu-toggle" aria-label="Open menu" aria-controls="nav-wrapper" aria-expanded="false">
           <span></span><span></span><span></span>
         </button>
@@ -105,7 +94,14 @@
       <div class="shop-header-text">
         <span class="section-num">04 / Store</span>
         <h2 class="section-title" style="margin-bottom: 1rem;">Merchandise</h2>
-        <p class="shop-header-desc">The first studio drop — Highland Cow apparel, printed from the original painting.</p>
+        <p class="shop-header-desc">The first studio drop — Highland Cow apparel, printed from the original painting. Browse the pieces below and order securely through our Etsy shop.</p>
+        <!-- Replace YOUR_ETSY_SHOP with your Etsy store URL once it's live -->
+        <a href="https://www.etsy.com/shop/YOUR_ETSY_SHOP" class="btn-etsy" target="_blank" rel="noopener noreferrer">
+          Shop on Etsy
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+            <path d="M7 17 17 7"></path><path d="M8 7h9v9"></path>
+          </svg>
+        </a>
       </div>
     </div>
   </section>
@@ -137,34 +133,7 @@
                 <span class="art-year">$58.00</span>
               </div>
               <span class="art-meta">Heavyweight cotton fleece &bull; Front print</span>
-
-              <div class="product-options">
-                <div class="product-option">
-                  <span class="product-option-label">Size</span>
-                  <div class="option-selector" data-option="size">
-                    <button type="button" class="option-btn" data-value="S">S</button>
-                    <button type="button" class="option-btn active" data-value="M">M</button>
-                    <button type="button" class="option-btn" data-value="L">L</button>
-                    <button type="button" class="option-btn" data-value="XL">XL</button>
-                    <button type="button" class="option-btn" data-value="2XL">2XL</button>
-                  </div>
-                </div>
-                <div class="product-option">
-                  <span class="product-option-label">Color</span>
-                  <div class="option-selector" data-option="color">
-                    <button type="button" class="option-btn active" data-value="Light">Light</button>
-                    <button type="button" class="option-btn" data-value="Dark">Dark</button>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                class="btn-add-to-cart"
-                data-id="hc-sweatshirt"
-                data-name="Highland Cow Sweatshirt"
-                data-price="58.00"
-                data-type="apparel"
-              >Add to Cart</button>
+              <span class="product-cta-hint">View details &amp; sizes</span>
             </div>
           </div>
 
@@ -183,34 +152,7 @@
                 <span class="art-year">$38.00</span>
               </div>
               <span class="art-meta">Soft ring-spun cotton &bull; Front print</span>
-
-              <div class="product-options">
-                <div class="product-option">
-                  <span class="product-option-label">Size</span>
-                  <div class="option-selector" data-option="size">
-                    <button type="button" class="option-btn" data-value="S">S</button>
-                    <button type="button" class="option-btn active" data-value="M">M</button>
-                    <button type="button" class="option-btn" data-value="L">L</button>
-                    <button type="button" class="option-btn" data-value="XL">XL</button>
-                    <button type="button" class="option-btn" data-value="2XL">2XL</button>
-                  </div>
-                </div>
-                <div class="product-option">
-                  <span class="product-option-label">Color</span>
-                  <div class="option-selector" data-option="color">
-                    <button type="button" class="option-btn active" data-value="Light">Light</button>
-                    <button type="button" class="option-btn" data-value="Dark">Dark</button>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                class="btn-add-to-cart"
-                data-id="hc-tee"
-                data-name="Highland Cow T-Shirt"
-                data-price="38.00"
-                data-type="apparel"
-              >Add to Cart</button>
+              <span class="product-cta-hint">View details &amp; sizes</span>
             </div>
           </div>
 
@@ -276,53 +218,16 @@
           <p class="product-modal-price" id="product-modal-price"></p>
           <p class="product-modal-meta" id="product-modal-meta"></p>
           <p class="product-modal-description" id="product-modal-description"></p>
-          <div class="product-options" id="product-modal-options"></div>
-          <button type="button" class="btn-add-to-cart" id="product-modal-add-btn">Add to Cart</button>
+          <p class="product-modal-fulfillment">Sizes, colors, and secure checkout are handled on our Etsy shop.</p>
+          <!-- Replace YOUR_ETSY_SHOP with your Etsy store URL once it's live -->
+          <a href="https://www.etsy.com/shop/YOUR_ETSY_SHOP" class="btn-etsy btn-etsy--block" target="_blank" rel="noopener noreferrer">
+            Shop on Etsy
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+              <path d="M7 17 17 7"></path><path d="M8 7h9v9"></path>
+            </svg>
+          </a>
         </div>
       </div>
-    </div>
-  </div>
-
-  <!-- Cart Sidebar Drawer -->
-  <div class="cart-overlay" id="cart-overlay"></div>
-  <div class="cart-drawer" id="cart-drawer">
-    <div class="cart-header">
-      <h3>Shopping Cart</h3>
-      <button class="cart-close-btn" id="cart-close-btn" aria-label="Close Cart">
-        <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="1.5">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
-    </div>
-    
-    <div class="cart-items-list" id="cart-items-list">
-      <!-- Default Empty State -->
-      <div class="cart-empty-message" id="cart-empty-message">Your shopping cart is currently empty.</div>
-    </div>
-    
-    <div class="cart-footer">
-      <div class="cart-summary-row">
-        <span class="cart-summary-label">Subtotal</span>
-        <span class="cart-summary-value" id="cart-subtotal">$0.00</span>
-      </div>
-      <div class="checkout-status" id="checkout-status" role="status" aria-live="polite"></div>
-      <div class="paypal-button-container" id="paypal-button-container"></div>
-      <button class="btn-checkout" id="checkout-btn" disabled>
-        PayPal Checkout
-      </button>
-    </div>
-  </div>
-
-  <!-- Checkout Success Modal Overlay -->
-  <div class="success-modal-overlay" id="success-modal-overlay">
-    <div class="success-modal-content">
-      <svg class="success-modal-icon" viewBox="0 0 24 24">
-        <polyline points="20 6 9 17 4 12"></polyline>
-      </svg>
-      <h4 class="success-modal-title" id="success-modal-title">Purchase Successful</h4>
-      <p class="success-modal-message" id="success-modal-message">Thank you for supporting Beau Thompson's studio! Your PayPal payment has been captured successfully.</p>
-      <button class="success-modal-btn" id="success-modal-close-btn">Return to Shop</button>
     </div>
   </div>
 
@@ -338,13 +243,6 @@
     </div>
   </footer>
 
-  <script>
-    window.PAYPAL_CONFIG = {
-      clientId: 'YOUR_PAYPAL_CLIENT_ID',
-      currency: 'USD',
-      intent: 'capture'
-    };
-  </script>
-  <script src="shop.js?v=3" defer></script>
+  <script src="shop.js?v=4" defer></script>
 </body>
 </html>
