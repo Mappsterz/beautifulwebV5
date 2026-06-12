@@ -1090,7 +1090,11 @@ textarea.form-input {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(247, 245, 242, 0.94);
+  /* Slightly lower alpha + backdrop blur = frosted glass; the blur keeps
+     page content behind the details text from competing with it. */
+  background-color: rgba(247, 245, 242, 0.88);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
   z-index: 1000;
   display: flex;
   justify-content: center;
@@ -1099,6 +1103,9 @@ textarea.form-input {
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--duration-base) var(--ease-standard);
+  /* Safety net: if a work's details (badge, thumbs, button) outgrow the
+     viewport, let the lightbox scroll instead of cutting the button off. */
+  overflow-y: auto;
 }
 
 .lightbox.active {
@@ -1110,13 +1117,17 @@ textarea.form-input {
   display: flex;
   flex-direction: column;
   max-width: 90vw;
-  max-height: 85vh;
   position: relative;
   align-items: center;
+  /* margin:auto centers like align-items:center, but without clipping the
+     top of the content when it's taller than the viewport and scrolls. */
+  margin: auto;
 }
 
 .lightbox-image-wrapper {
-  max-height: 70vh;
+  /* 58vh (not 70) leaves room below for title, meta, badge, thumbnails, and
+     the inquire button, so series works fit on screen without scrolling. */
+  max-height: 58vh;
   margin-bottom: 1.5rem;
   display: flex;
   justify-content: center;
@@ -1151,7 +1162,7 @@ textarea.form-input {
 
 .lightbox-image {
   max-width: 100%;
-  max-height: 70vh;
+  max-height: 58vh;
   object-fit: contain;
   border: 1px solid var(--border-color);
 }
@@ -1168,10 +1179,14 @@ textarea.form-input {
 }
 
 .lightbox-meta {
+  /* Block, not inline: keeps the availability badge from flowing into the
+     wrapped meta text on narrow screens (badge lands mid-sentence). */
+  display: block;
   font-size: 0.85rem;
   font-weight: 300;
   color: var(--text-secondary);
   letter-spacing: 0.02em;
+  line-height: 1.55;
 }
 
 .lightbox-availability {
