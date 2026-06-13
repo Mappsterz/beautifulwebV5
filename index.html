@@ -41,7 +41,7 @@
   <meta name="twitter:description" content="Contemporary paintings, drawings, and sculptures by Beau Thompson.">
   <meta name="twitter:image" content="assets/crab-cigarette.webp">
 
-  <link rel="stylesheet" href="style.css?v=23">
+  <link rel="stylesheet" href="style.css?v=24">
   <link rel="preload" as="image" href="assets/crab-cigarette.webp" fetchpriority="high">
   <link rel="preload" as="image" href="assets/highland-cow.webp">
 
@@ -125,20 +125,15 @@
       <!-- Category Filter Tabs -->
       <ul class="gallery-filters">
         <li><button class="filter-btn active" data-filter="all">All</button></li>
-        <li><button class="filter-btn" data-filter="paintings">Paintings</button></li>
-        <li><button class="filter-btn" data-filter="drawings">Drawings</button></li>
-        <li><button class="filter-btn" data-filter="sculptures">Sculptures</button></li>
-      </ul>
-
-      <ul class="gallery-subfilters" id="gallery-subfilters" hidden>
-        <li><button class="subfilter-btn active" data-subfilter="all">All</button></li>
+        <li><button class="filter-btn" data-filter="flat-works">Flat Works</button></li>
+        <li><button class="filter-btn" data-filter="sculptural">Sculptural</button></li>
       </ul>
 
       <!-- Gallery Grid -->
       <div class="gallery-grid" id="gallery-grid">
         
         <!-- Painting: Highland Cow -->
-        <div class="art-card" data-category="paintings" data-subcategory="animals" data-availability="print-available" data-statement="Apparel and studio prints adapted from this painting are available in the Shop.">
+        <div class="art-card" data-category="flat-works" data-availability="print-available" data-statement="Apparel and studio prints adapted from this painting are available in the Shop.">
           <div class="art-image-wrapper art-image-wrapper--highland-cow">
             <picture>
               <source srcset="assets/highland-cow.webp" type="image/webp">
@@ -156,7 +151,7 @@
         </div>
 
         <!-- Active Artwork: The Smoking Crab -->
-        <div class="art-card" data-category="paintings" data-subcategory="animals" data-availability="inquire">
+        <div class="art-card" data-category="flat-works" data-availability="inquire">
           <div class="art-image-wrapper art-image-wrapper--crab">
             <picture>
               <source srcset="assets/crab-cigarette.webp" type="image/webp">
@@ -173,7 +168,7 @@
         </div>
 
         <!-- Painting: Pearl & Oyster -->
-        <div class="art-card art-card--series" data-category="paintings" data-subcategory="portraits" data-availability="inquire" data-gallery='[{"src":"assets/pearl-oyster-1.webp","title":"Untitled (Pearl & Oyster)","meta":"Oil on Canvas"},{"src":"assets/pearl-oyster-2.webp","title":"Untitled (Pearl & Oyster) II","meta":"Oil on Canvas"}]'>
+        <div class="art-card art-card--series" data-category="flat-works" data-availability="inquire" data-gallery='[{"src":"assets/pearl-oyster-1.webp","title":"Untitled (Pearl & Oyster)","meta":"Oil on Canvas"},{"src":"assets/pearl-oyster-2.webp","title":"Untitled (Pearl & Oyster) II","meta":"Oil on Canvas"}]'>
           <div class="art-image-wrapper">
             <picture>
               <source srcset="assets/pearl-oyster-1.webp" type="image/webp">
@@ -191,7 +186,7 @@
         </div>
 
         <!-- Painting: Green Converse -->
-        <div class="art-card" data-category="paintings" data-subcategory="objects" data-availability="inquire">
+        <div class="art-card" data-category="flat-works" data-availability="inquire">
           <div class="art-image-wrapper">
             <picture>
               <source srcset="assets/converse-pink.webp" type="image/webp">
@@ -208,7 +203,7 @@
         </div>
 
         <!-- Painting: Green Converse II -->
-        <div class="art-card" data-category="paintings" data-subcategory="objects" data-availability="inquire">
+        <div class="art-card" data-category="flat-works" data-availability="inquire">
           <div class="art-image-wrapper">
             <picture>
               <source srcset="assets/converse-gold.webp" type="image/webp">
@@ -225,7 +220,7 @@
         </div>
 
         <!-- Painting: Starry Bison -->
-        <div class="art-card" data-category="paintings" data-subcategory="animals" data-availability="inquire">
+        <div class="art-card" data-category="flat-works" data-availability="inquire">
           <div class="art-image-wrapper">
             <picture>
               <source srcset="assets/starry-bison.webp" type="image/webp">
@@ -242,7 +237,7 @@
         </div>
 
         <!-- Drawing 1: Reclining with Fan -->
-        <div class="art-card" data-category="drawings" data-availability="inquire">
+        <div class="art-card" data-category="flat-works" data-availability="inquire">
           <div class="art-image-wrapper art-image-wrapper--fan">
             <picture>
               <source srcset="assets/drawing-1.webp" type="image/webp">
@@ -258,94 +253,74 @@
           </div>
         </div>
 
-        <!-- Sculpture Group: Branch & Lace -->
-        <div class="gallery-cluster" data-category="sculptures" data-subcategory="assemblage">
-          <span class="gallery-cluster-label">Branch &amp; Lace</span>
-          <div class="gallery-cluster-grid">
-            <div class="art-card art-card--series" data-category="sculptures" data-subcategory="assemblage" data-availability="inquire" data-gallery='[{"src":"assets/sculpture-1.webp","title":"Untitled (Branch & Lace)","meta":"Branches, Lace, Metal Chain • 36 × 32 × 12 in"},{"src":"assets/sculpture-1-detail.webp","title":"Untitled (Branch & Lace) – Detail","meta":"Detail View • Close-up"}]'>
-              <div class="art-image-wrapper">
-                <picture>
-                  <source srcset="assets/sculpture-1.webp" type="image/webp">
-                  <img src="assets/sculpture-1.webp" alt="Untitled (Branch & Lace) - Mixed media sculpture by Beau Thompson" loading="lazy" decoding="async">
-                </picture>
-                <span class="art-gallery-badge">2 views</span>
-              </div>
-              <div class="art-info">
-                <div class="art-title-row">
-                  <h4 class="art-title">Untitled (Branch & Lace)</h4>
-                  <span class="art-year">2026</span>
-                </div>
-                <span class="art-meta">Branches, Lace, Metal Chain &bull; 36 × 32 × 12 in</span>
-              </div>
+        <!-- Sculpture: Branch & Lace -->
+        <div class="art-card art-card--series" data-category="sculptural" data-availability="inquire" data-gallery='[{"src":"assets/sculpture-1.webp","title":"Untitled (Branch & Lace)","meta":"Branches, Lace, Metal Chain • 36 × 32 × 12 in"},{"src":"assets/sculpture-1-detail.webp","title":"Untitled (Branch & Lace) – Detail","meta":"Detail View • Close-up"}]'>
+          <div class="art-image-wrapper">
+            <picture>
+              <source srcset="assets/sculpture-1.webp" type="image/webp">
+              <img src="assets/sculpture-1.webp" alt="Untitled (Branch & Lace) - Mixed media sculpture by Beau Thompson" loading="lazy" decoding="async">
+            </picture>
+            <span class="art-gallery-badge">2 views</span>
+          </div>
+          <div class="art-info">
+            <div class="art-title-row">
+              <h4 class="art-title">Untitled (Branch & Lace)</h4>
+              <span class="art-year">2026</span>
             </div>
+            <span class="art-meta">Branches, Lace, Metal Chain &bull; 36 × 32 × 12 in</span>
           </div>
         </div>
 
-        <!-- Sculpture Group: Pill Assemblage -->
-        <div class="gallery-cluster" data-category="sculptures" data-subcategory="assemblage">
-          <span class="gallery-cluster-label">Pill Assemblage</span>
-          <div class="gallery-cluster-grid">
-            <div class="art-card art-card--series" data-category="sculptures" data-subcategory="assemblage" data-availability="inquire" data-gallery='[{"src":"assets/sculpture-pills-1.webp","title":"Untitled (Pill Assemblage)","meta":"Wax, Prescription Bottles, Pins • Mixed media"},{"src":"assets/sculpture-pills-2.webp","title":"Untitled (Pill Assemblage) II","meta":"Wax, Prescription Bottles, Pins • Mixed media"}]'>
-              <div class="art-image-wrapper">
-                <picture>
-                  <source srcset="assets/sculpture-pills-1.webp" type="image/webp">
-                  <img src="assets/sculpture-pills-1.webp" alt="Untitled (Pill Assemblage) - Wax and prescription bottle sculpture by Beau Thompson" loading="lazy" decoding="async">
-                </picture>
-                <span class="art-gallery-badge">2 views</span>
-              </div>
-              <div class="art-info">
-                <div class="art-title-row">
-                  <h4 class="art-title">Untitled (Pill Assemblage)</h4>
-                  <span class="art-year">2026</span>
-                </div>
-                <span class="art-meta">Wax, Prescription Bottles, Pins &bull; Mixed media</span>
-              </div>
+        <!-- Sculpture: Pill Assemblage -->
+        <div class="art-card art-card--series" data-category="sculptural" data-availability="inquire" data-gallery='[{"src":"assets/sculpture-pills-1.webp","title":"Untitled (Pill Assemblage)","meta":"Wax, Prescription Bottles, Pins • Mixed media"},{"src":"assets/sculpture-pills-2.webp","title":"Untitled (Pill Assemblage) II","meta":"Wax, Prescription Bottles, Pins • Mixed media"}]'>
+          <div class="art-image-wrapper">
+            <picture>
+              <source srcset="assets/sculpture-pills-1.webp" type="image/webp">
+              <img src="assets/sculpture-pills-1.webp" alt="Untitled (Pill Assemblage) - Wax and prescription bottle sculpture by Beau Thompson" loading="lazy" decoding="async">
+            </picture>
+            <span class="art-gallery-badge">2 views</span>
+          </div>
+          <div class="art-info">
+            <div class="art-title-row">
+              <h4 class="art-title">Untitled (Pill Assemblage)</h4>
+              <span class="art-year">2026</span>
             </div>
+            <span class="art-meta">Wax, Prescription Bottles, Pins &bull; Mixed media</span>
           </div>
         </div>
 
-        <!-- Sculpture Group: Petri -->
-        <div class="gallery-cluster" data-category="sculptures" data-subcategory="wall-works">
-          <span class="gallery-cluster-label">Petri</span>
-          <div class="gallery-cluster-grid">
-            <div class="art-card art-card--series" data-category="sculptures" data-subcategory="wall-works" data-availability="inquire" data-gallery='[{"src":"assets/petri.webp","title":"Petri","meta":"Steel, Perforated Metal, Wire • Wall-mounted"},{"src":"assets/petri-detail.webp","title":"Petri – Detail","meta":"Detail View • Perforated metal & steel"}]'>
-              <div class="art-image-wrapper">
-                <picture>
-                  <source srcset="assets/petri.webp" type="image/webp">
-                  <img src="assets/petri.webp" alt="Petri - Wall-mounted steel and perforated metal sculpture by Beau Thompson" loading="lazy" decoding="async">
-                </picture>
-                <span class="art-gallery-badge">2 views</span>
-              </div>
-              <div class="art-info">
-                <div class="art-title-row">
-                  <h4 class="art-title">Petri</h4>
-                  <span class="art-year">2026</span>
-                </div>
-                <span class="art-meta">Steel, Perforated Metal, Wire &bull; Wall-mounted</span>
-              </div>
+        <!-- Sculpture: Petri -->
+        <div class="art-card art-card--series" data-category="sculptural" data-availability="inquire" data-gallery='[{"src":"assets/petri.webp","title":"Petri","meta":"Steel, Perforated Metal, Wire • Wall-mounted"},{"src":"assets/petri-detail.webp","title":"Petri – Detail","meta":"Detail View • Perforated metal & steel"}]'>
+          <div class="art-image-wrapper">
+            <picture>
+              <source srcset="assets/petri.webp" type="image/webp">
+              <img src="assets/petri.webp" alt="Petri - Wall-mounted steel and perforated metal sculpture by Beau Thompson" loading="lazy" decoding="async">
+            </picture>
+            <span class="art-gallery-badge">2 views</span>
+          </div>
+          <div class="art-info">
+            <div class="art-title-row">
+              <h4 class="art-title">Petri</h4>
+              <span class="art-year">2026</span>
             </div>
+            <span class="art-meta">Steel, Perforated Metal, Wire &bull; Wall-mounted</span>
           </div>
         </div>
 
-        <!-- Sculpture Group: Oblisque -->
-        <div class="gallery-cluster" data-category="sculptures" data-subcategory="freestanding">
-          <span class="gallery-cluster-label">Oblisque</span>
-          <div class="gallery-cluster-grid">
-            <div class="art-card" data-category="sculptures" data-subcategory="freestanding" data-availability="inquire">
-              <div class="art-image-wrapper">
-                <picture>
-                  <source srcset="assets/oblisque.webp" type="image/webp">
-                  <img src="assets/oblisque.webp" alt="Oblisque - Dark metal obelisk sculpture with circular void by Beau Thompson" loading="lazy" decoding="async">
-                </picture>
-              </div>
-              <div class="art-info">
-                <div class="art-title-row">
-                  <h4 class="art-title">Oblisque</h4>
-                  <span class="art-year">2026</span>
-                </div>
-                <span class="art-meta">Patinated Steel &bull; Geometric obelisk</span>
-              </div>
+        <!-- Sculpture: Oblisque -->
+        <div class="art-card" data-category="sculptural" data-availability="inquire">
+          <div class="art-image-wrapper">
+            <picture>
+              <source srcset="assets/oblisque.webp" type="image/webp">
+              <img src="assets/oblisque.webp" alt="Oblisque - Dark metal obelisk sculpture with circular void by Beau Thompson" loading="lazy" decoding="async">
+            </picture>
+          </div>
+          <div class="art-info">
+            <div class="art-title-row">
+              <h4 class="art-title">Oblisque</h4>
+              <span class="art-year">2026</span>
             </div>
+            <span class="art-meta">Patinated Steel &bull; Geometric obelisk</span>
           </div>
         </div>
 
@@ -509,6 +484,6 @@
     <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></svg>
   </button>
 
-  <script src="app.js?v=17" defer></script>
+  <script src="app.js?v=18" defer></script>
 </body>
 </html>

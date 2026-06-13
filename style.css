@@ -1101,8 +1101,15 @@ textarea.form-input {
   align-items: center;
   padding: 2rem;
   opacity: 0;
+  /* visibility:hidden fully removes the overlay (and its backdrop-filter) from
+     compositing when closed — without it, WebKit keeps blurring the gallery
+     behind an opacity:0 overlay, which makes thumbnails look clipped/hazy.
+     The 0s visibility transition is delayed so it flips off only after the
+     opacity fade completes. */
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity var(--duration-base) var(--ease-standard);
+  transition: opacity var(--duration-base) var(--ease-standard),
+              visibility 0s linear var(--duration-base);
   /* Safety net: if a work's details (badge, thumbs, button) outgrow the
      viewport, let the lightbox scroll instead of cutting the button off. */
   overflow-y: auto;
@@ -1110,7 +1117,9 @@ textarea.form-input {
 
 .lightbox.active {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
+  transition: opacity var(--duration-base) var(--ease-standard);
 }
 
 .lightbox-content {

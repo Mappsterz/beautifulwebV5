@@ -461,28 +461,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Gallery Filtering
   // ==========================================
   const filterButtons = document.querySelectorAll('.filter-btn');
-  const subfiltersContainer = document.getElementById('gallery-subfilters');
   const artCards = document.querySelectorAll('.art-card');
   const galleryClusters = document.querySelectorAll('.gallery-cluster');
   const topLevelCards = document.querySelectorAll('.gallery-grid > .art-card');
 
-  const subfilterOptions = {
-    paintings: [
-      { value: 'all', label: 'All Paintings' },
-      { value: 'portraits', label: 'Portraits' },
-      { value: 'animals', label: 'Animals' },
-      { value: 'objects', label: 'Objects' }
-    ],
-    sculptures: [
-      { value: 'all', label: 'All Sculptures' },
-      { value: 'wall-works', label: 'Wall Works' },
-      { value: 'assemblage', label: 'Assemblage' },
-      { value: 'freestanding', label: 'Freestanding' }
-    ]
-  };
-
   let activeMainFilter = 'all';
-  let activeSubFilter = 'all';
 
   function showCard(card) {
     card.classList.remove('hidden');
@@ -494,70 +477,16 @@ document.addEventListener('DOMContentLoaded', () => {
     card.style.display = 'none';
   }
 
-  function matchesSubfilter(subcategory) {
-    return activeSubFilter === 'all' || subcategory === activeSubFilter;
-  }
-
-  function renderSubfilters(category) {
-    if (!subfiltersContainer) return;
-
-    const options = subfilterOptions[category];
-    if (!options) {
-      subfiltersContainer.hidden = true;
-      subfiltersContainer.innerHTML = '';
-      return;
-    }
-
-    subfiltersContainer.hidden = false;
-    subfiltersContainer.innerHTML = options.map(option => `
-      <li>
-        <button
-          class="subfilter-btn${option.value === activeSubFilter ? ' active' : ''}"
-          data-subfilter="${option.value}"
-          type="button"
-        >
-          ${option.label}
-        </button>
-      </li>
-    `).join('');
-
-    subfiltersContainer.querySelectorAll('.subfilter-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        activeSubFilter = btn.getAttribute('data-subfilter') || 'all';
-        subfiltersContainer.querySelectorAll('.subfilter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        applyGalleryFilters();
-      });
-    });
-  }
-
   function applyGalleryFilters() {
     topLevelCards.forEach(card => {
-      const category = card.getAttribute('data-category');
-      const subcategory = card.getAttribute('data-subcategory');
-      const categoryMatch = activeMainFilter === 'all' || category === activeMainFilter;
-      const subcategoryMatch = activeMainFilter === 'all' ||
-        !subfilterOptions[activeMainFilter] ||
-        matchesSubfilter(subcategory);
-
-      if (categoryMatch && subcategoryMatch) {
-        showCard(card);
-      } else {
-        hideCard(card);
-      }
+      const matches = activeMainFilter === 'all' || card.getAttribute('data-category') === activeMainFilter;
+      if (matches) showCard(card); else hideCard(card);
     });
 
     galleryClusters.forEach(cluster => {
-      const category = cluster.getAttribute('data-category');
-      const subcategory = cluster.getAttribute('data-subcategory') ||
-        cluster.querySelector('.art-card')?.getAttribute('data-subcategory');
+      const matches = activeMainFilter === 'all' || cluster.getAttribute('data-category') === activeMainFilter;
       const clusterCards = cluster.querySelectorAll('.art-card');
-      const categoryMatch = activeMainFilter === 'all' || category === activeMainFilter;
-      const subcategoryMatch = activeMainFilter === 'all' ||
-        !subfilterOptions[activeMainFilter] ||
-        matchesSubfilter(subcategory);
-
-      if (categoryMatch && subcategoryMatch) {
+      if (matches) {
         cluster.classList.remove('hidden');
         clusterCards.forEach(showCard);
       } else {
@@ -571,16 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => {
       filterButtons.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-
       activeMainFilter = btn.getAttribute('data-filter') || 'all';
-      activeSubFilter = 'all';
-
-      if (subfilterOptions[activeMainFilter]) {
-        renderSubfilters(activeMainFilter);
-      } else {
-        renderSubfilters(null);
-      }
-
       applyGalleryFilters();
     });
   });
@@ -686,7 +606,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const availabilityKey = card.dataset.availability || '';
     const availability = availabilityCopy[availabilityKey];
     if (lightboxAvailability) {
-      if (availability) {
+      // 'inquire' is the default state — its badge just duplicates the inquire
+      // button below, so only surface badges that convey real status
+      // (e.g. Print Available, Sold).
+      if (availability && availabilityKey !== 'inquire') {
         lightboxAvailability.textContent = availability.label;
         lightboxAvailability.dataset.status = availabilityKey;
         lightboxAvailability.classList.add('active');
