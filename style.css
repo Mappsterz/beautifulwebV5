@@ -2021,6 +2021,19 @@ footer {
     transform: none;
   }
 
+  /* iOS fires :hover on tap, and the rule above would wipe the crop-positioning
+     transform on these three thumbnails — making the image snap out of frame
+     the instant you tap to open the lightbox (reads as jitter). Re-assert their
+     transforms so a tap can't dislodge them. */
+  .art-card:hover .art-image-wrapper--highland-cow img {
+    transform: translate(-50%, -46%);
+  }
+
+  .art-card:hover .art-image-wrapper--crab img,
+  .art-card:hover .art-image-wrapper--fan img {
+    transform: translate(-50%, -50%);
+  }
+
   .art-card:hover .art-image-wrapper::after {
     opacity: 0;
   }
