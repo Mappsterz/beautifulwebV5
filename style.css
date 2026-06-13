@@ -1120,6 +1120,10 @@ textarea.form-input {
   visibility: visible;
   pointer-events: auto;
   transition: opacity var(--duration-base) var(--ease-standard);
+  /* Keep the frosted overlay on its own GPU layer during the fade so the
+     compositor alpha-blends a cached blur instead of re-rasterizing
+     backdrop-filter every frame (the cause of mobile open-jitter). */
+  will-change: opacity;
 }
 
 .lightbox-content {
@@ -1805,6 +1809,10 @@ footer {
     align-items: flex-start;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    /* Lighter blur on mobile — cheaper for the phone GPU to composite during
+       the fade-in, reducing open-jitter. Still reads as frosted glass. */
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
     padding:
       calc(0.75rem + env(safe-area-inset-top, 0px))
       calc(0.75rem + env(safe-area-inset-right, 0px))
