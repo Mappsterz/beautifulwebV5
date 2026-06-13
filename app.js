@@ -716,6 +716,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     syncMainHiddenState();
     setTimeout(() => {
+      // If the lightbox was reopened during the close delay, skip cleanup —
+      // otherwise we'd wipe the src/thumbs of the freshly opened work.
+      if (lightbox.classList.contains('active')) return;
       if (lightboxThumbs) {
         lightboxThumbs.innerHTML = '';
         lightboxThumbs.classList.remove('active');
