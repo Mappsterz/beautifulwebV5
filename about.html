@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script>
+    (function () {
+      if (!location.hostname.endsWith('github.io')) return;
+      var segment = location.pathname.split('/').filter(Boolean)[0];
+      if (!segment || segment.includes('.')) return;
+      var base = document.createElement('base');
+      base.href = '/' + segment + '/';
+      document.head.insertBefore(base, document.head.firstChild);
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>About | Beau Thompson</title>
+  <meta name="description" content="About Beau Thompson — contemporary artist exploring classical subjects through a modern visual language.">
+  <meta name="theme-color" content="#f5f0ea">
+
+  <link rel="canonical" href="https://beaurancethompson.com/about.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap">
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="assets/highland-cow.webp">
+
+  <link rel="stylesheet" href="style.css?v=20">
+</head>
+<body class="site-page">
+
+  <a href="#about-content" class="skip-link">Skip to content</a>
+
+  <header id="header" class="site-header">
+    <div class="container nav-container">
+      <a href="index.html" class="logo">Beau Thompson</a>
+      <button class="menu-toggle" id="menu-toggle" aria-label="Open menu" aria-controls="nav-wrapper" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-overlay" id="nav-overlay"></div>
+      <div class="nav-wrapper" id="nav-wrapper">
+        <nav>
+          <ul>
+            <li><a href="index.html" class="nav-link">Works</a></li>
+            <li><a href="about.html" class="nav-link active">About</a></li>
+            <li><a href="contact.html" class="nav-link">Contact</a></li>
+            <li><a href="shop.html" class="nav-link">Shop</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main id="site-main" class="page-content">
+    <div class="container page-inner" id="about-content">
+      <div class="about-layout">
+        <div class="about-visual">
+          <picture>
+            <source srcset="assets/artist.webp" type="image/webp">
+            <img src="assets/artist.webp" alt="Beau Thompson — artist portrait" loading="lazy" decoding="async">
+          </picture>
+        </div>
+
+        <div class="about-text">
+          <h1 class="page-title">About</h1>
+          <h2 class="about-tagline">Beau Thompson is a contemporary artist based in the United States, exploring visual metaphors through light and shadow.</h2>
+          <div class="about-bio">
+            <p>Through an expressive command of medium and color, Beau Thompson investigates the intersection of classical subjects and modern visual sensibilities. Her paintings invite viewers into narratives that are at once familiar and surreal, capturing moments of quiet tension and whimsical subversion.</p>
+            <p>Using oil on canvas as a primary voice, Beau’s work highlights rich texture, bold brushwork, and saturated color palettes. She aims to break down the boundaries between fine art conventions and pop-culture motifs, constructing scenes that trigger curiosity and emotional resonance.</p>
+            <p><em>This portfolio represents the foundation of a growing body of work. New paintings, graphite drawings, and bronze studies will be populated here as they emerge from the studio.</em></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container footer-content">
+      <span class="footer-copy">&copy; 2026 Beau Thompson. All rights reserved.</span>
+      <ul class="footer-social">
+        <li><a href="shop.html">Shop</a></li>
+        <li><a href="https://www.instagram.com/archoneye/" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+        <li><a href="mailto:info@beaurancethompson.com">Email</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script src="nav.js?v=1" defer></script>
+</body>
+</html>

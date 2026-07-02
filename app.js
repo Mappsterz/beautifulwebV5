@@ -1,24 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
-
-  function onScrollFrame(callback) {
-    let ticking = false;
-    return () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        callback();
-        ticking = false;
-      });
-    };
-  }
-
-  // ==========================================
-  // Mobile Navigation
-  // ==========================================
-  const menuToggle = document.getElementById('menu-toggle');
+  const MODAL_TRANSITION_MS = 400;
+  const mainContent = document.getElementById('works') || document.getElementById('site-main');
   const navWrapper = document.getElementById('nav-wrapper');
-  const navOverlay = document.getElementById('nav-overlay');
-  const mainContent = document.getElementById('site-main');
   const focusableSelector = [
     'a[href]',
     'button:not([disabled])',
@@ -27,28 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
     'select:not([disabled])',
     '[tabindex]:not([tabindex="-1"])'
   ].join(',');
-  let scrollLockDepth = 0;
-  let savedScrollY = 0;
-  let lastMenuFocusedElement = null;
+
   let lastLightboxFocusedElement = null;
 
-  function lockPageScroll() {
-    if (scrollLockDepth === 0) {
-      savedScrollY = window.scrollY || window.pageYOffset || 0;
-      document.body.style.top = `-${savedScrollY}px`;
-      document.body.classList.add('scroll-locked');
-    }
-    scrollLockDepth += 1;
-  }
-
-  function unlockPageScroll() {
-    if (scrollLockDepth === 0) return;
-    scrollLockDepth -= 1;
-    if (scrollLockDepth > 0) return;
-    document.body.classList.remove('scroll-locked');
-    document.body.style.top = '';
-    window.scrollTo(0, savedScrollY);
-  }
+  const lockPageScroll = (...args) => window.siteNav?.lockPageScroll(...args);
+  const unlockPageScroll = (...args) => window.siteNav?.unlockPageScroll(...args);
 
   function trapFocus(container, event) {
     if (!container) return;
@@ -67,11 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setMainHidden(hidden) {
-    const nodes = [mainContent, document.querySelector('footer'), document.getElementById('back-to-top')];
-    nodes.filter(Boolean).forEach((node) => {
-      node.setAttribute('aria-hidden', hidden ? 'true' : 'false');
-      node.inert = hidden;
-    });
+    if (!mainContent) return;
+    mainContent.setAttribute('aria-hidden', hidden ? 'true' : 'false');
+    mainContent.inert = hidden;
   }
 
   function syncMainHiddenState() {
@@ -80,435 +44,16 @@ document.addEventListener('DOMContentLoaded', () => {
     setMainHidden(Boolean(menuOpen || lightboxOpen));
   }
 
-  function closeMenu() {
-    const wasOpen = navWrapper?.classList.contains('open');
-    menuToggle?.classList.remove('active');
-    navWrapper?.classList.remove('open');
-    navOverlay?.classList.remove('active');
-    unlockPageScroll();
-    document.body.classList.remove('menu-open');
-    menuToggle?.setAttribute('aria-expanded', 'false');
-    menuToggle?.setAttribute('aria-label', 'Open menu');
-    if (wasOpen && lastMenuFocusedElement instanceof HTMLElement) {
-      lastMenuFocusedElement.focus();
-    }
-    syncMainHiddenState();
-  }
-
-  function openMenu() {
-    lastMenuFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    menuToggle?.classList.add('active');
-    navWrapper?.classList.add('open');
-    navOverlay?.classList.add('active');
-    lockPageScroll();
-    document.body.classList.add('menu-open');
-    menuToggle?.setAttribute('aria-expanded', 'true');
-    menuToggle?.setAttribute('aria-label', 'Close menu');
-    navWrapper?.querySelector('a, button')?.focus();
-    syncMainHiddenState();
-  }
-
-  menuToggle?.addEventListener('click', () => {
-    if (navWrapper?.classList.contains('open')) {
-      closeMenu();
-    } else {
-      openMenu();
-    }
-  });
-
-  navOverlay?.addEventListener('click', closeMenu);
-
-  document.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', closeMenu);
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape') return;
-    if (navWrapper?.classList.contains('open')) closeMenu();
-  });
-
-  window.addEventListener('resize', () => {
-    if (window.innerWidth > 768 && navWrapper?.classList.contains('open')) {
-      closeMenu();
-    }
-  }, { passive: true });
+  document.addEventListener('site:menu-open', syncMainHiddenState);
+  document.addEventListener('site:menu-close', syncMainHiddenState);
   syncMainHiddenState();
-
-  // ==========================================
-  // Header Scroll Effect
-  // ==========================================
-  const header = document.getElementById('header');
-
-  const handleScroll = () => {
-    if (window.scrollY > 50) {
-      header.classList.add('scrolled');
-    } else {
-      header.classList.remove('scrolled');
-    }
-  };
-
-  // ==========================================
-  // Hero Featured Works Rotation
-  // ==========================================
-  const heroSlides = document.querySelectorAll('.hero-slide');
-  const heroSlidesEl = document.getElementById('hero-slides');
-  const heroCaption = document.getElementById('hero-caption');
-  const heroCaptionTitle = document.getElementById('hero-caption-title');
-  const heroCaptionMeta = document.getElementById('hero-caption-meta');
-  const heroScrollLink = document.querySelector('.hero-scroll');
-  let heroIndex = 0;
-  let heroTimer = null;
-  let heroCaptionTimer = null;
-  let heroTransitioning = false;
-  const heroPreloads = new Map();
-  const CAPTION_SWAP_MS = 450;
-  const HERO_INTERVAL_MS = 6200;
-  const HERO_TRANSITION_MS = 1000;
-  const MODAL_TRANSITION_MS = 400;
-
-  function preloadHeroSrc(src) {
-    if (!src) return Promise.resolve(false);
-    if (heroPreloads.has(src)) return heroPreloads.get(src);
-
-    const promise = new Promise((resolve) => {
-      const img = new Image();
-      img.decoding = 'async';
-      img.onload = () => resolve(true);
-      img.onerror = () => resolve(false);
-      img.src = src;
-    });
-
-    heroPreloads.set(src, promise);
-    return promise;
-  }
-
-  async function prepareHeroSlide(slide) {
-    const src = slide?.dataset.src || slide?.getAttribute('src');
-    if (!src || src.startsWith('data:')) return;
-
-    await preloadHeroSrc(src);
-    if (slide.dataset.src) slide.src = slide.dataset.src;
-
-    if (slide.decode) {
-      try {
-        await slide.decode();
-      } catch {
-        /* decoded or failed — continue */
-      }
-    } else if (!slide.complete) {
-      await new Promise((resolve) => {
-        slide.onload = resolve;
-        slide.onerror = resolve;
-      });
-    }
-  }
-
-  function setHeroSlideClasses(activeIndex) {
-    heroSlides.forEach((slide, i) => {
-      slide.classList.remove('is-fading-in', 'is-visible');
-      if (i === activeIndex) slide.classList.add('is-visible');
-    });
-  }
-
-  function enableHeroCaption() {
-    if (!heroCaption) return;
-    const slide = heroSlides[heroIndex];
-    heroCaption.classList.add('has-entered');
-    heroCaption.classList.toggle('active', Boolean(slide?.dataset.title));
-  }
-
-  function showHeroSlide(index, { immediate = false } = {}) {
-    const target = heroSlides[index];
-    if (!target) return;
-    if (!immediate && index === heroIndex) return;
-
-    if (immediate) {
-      setHeroSlideClasses(index);
-      heroIndex = index;
-      writeHeroCaption(target);
-      heroCaption?.classList.remove('is-changing');
-      return;
-    }
-
-    if (heroTransitioning) return;
-
-    const previousIndex = heroIndex;
-    const previous = heroSlides[previousIndex];
-    heroTransitioning = true;
-    heroIndex = index;
-    heroSlidesEl?.classList.add('is-transitioning');
-
-    heroSlides.forEach((slide, i) => {
-      if (i !== previousIndex && i !== index) {
-        slide.classList.remove('is-fading-in', 'is-visible');
-      }
-    });
-
-    if (previous && previous !== target) {
-      previous.classList.remove('is-fading-in');
-      previous.classList.add('is-visible');
-    }
-
-    target.classList.remove('is-visible');
-    target.classList.remove('is-fading-in');
-    void target.offsetWidth;
-    target.classList.add('is-fading-in');
-
-    const finishTransition = (() => {
-      let done = false;
-      return () => {
-        if (done) return;
-        done = true;
-        target.removeEventListener('animationend', onAnimationEnd);
-        setHeroSlideClasses(index);
-        heroSlidesEl?.classList.remove('is-transitioning');
-        heroTransitioning = false;
-      };
-    })();
-
-    const onAnimationEnd = (event) => {
-      if (event.target !== target || event.animationName !== 'heroCrossfade') return;
-      finishTransition();
-    };
-
-    target.addEventListener('animationend', onAnimationEnd);
-    setTimeout(finishTransition, HERO_TRANSITION_MS + 120);
-
-    swapHeroCaption(target);
-  }
-
-  function writeHeroCaption(slide) {
-    if (!slide) return;
-    const title = slide.dataset.title || '';
-    const meta = slide.dataset.meta || '';
-    if (heroCaptionTitle) heroCaptionTitle.textContent = title;
-    if (heroCaptionMeta) heroCaptionMeta.innerHTML = meta;
-  }
-
-  function swapHeroCaption(slide) {
-    if (!slide || !heroCaption) return;
-
-    clearTimeout(heroCaptionTimer);
-    heroCaption.classList.add('is-changing');
-
-    heroCaptionTimer = setTimeout(() => {
-      writeHeroCaption(slide);
-      heroCaption.classList.toggle('active', Boolean(slide.dataset.title));
-      heroCaption.classList.remove('is-changing');
-    }, CAPTION_SWAP_MS);
-  }
-
-  function advanceHeroSlide() {
-    if (heroTransitioning) return;
-    const nextIndex = (heroIndex + 1) % heroSlides.length;
-    showHeroSlide(nextIndex);
-  }
-
-  let heroInView = true;
-
-  function startHeroRotation() {
-    if (heroSlides.length <= 1) return;
-    stopHeroRotation();
-    heroTimer = setInterval(advanceHeroSlide, HERO_INTERVAL_MS);
-  }
-
-  function stopHeroRotation() {
-    if (heroTimer) {
-      clearInterval(heroTimer);
-      heroTimer = null;
-    }
-  }
-
-  // Only animate when the hero is actually on screen and the tab is visible —
-  // crossfading offscreen burns frame budget and causes a jank burst on return.
-  function syncHeroRotation() {
-    if (heroSlides.length <= 1) return;
-    if (heroInView && !document.hidden) {
-      startHeroRotation();
-    } else {
-      stopHeroRotation();
-    }
-  }
-
-  async function bootSiteEnter() {
-    if (document.fonts?.ready) {
-      try {
-        await Promise.race([
-          document.fonts.ready,
-          new Promise((resolve) => setTimeout(resolve, 2000))
-        ]);
-      } catch {
-        /* continue without waiting */
-      }
-    }
-
-    if (!document.documentElement.classList.contains('is-loaded')) {
-      document.documentElement.classList.add('is-loaded');
-    }
-  }
-
-  function scheduleHeroCaptionEnter() {
-    if (!heroCaption) return;
-
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      enableHeroCaption();
-      return;
-    }
-
-    const delayMs = 640 + 620;
-    setTimeout(enableHeroCaption, delayMs);
-  }
-
-  async function initHero() {
-    bootSiteEnter();
-
-    if (!heroSlides.length) return;
-
-    try {
-      await Promise.all([...heroSlides].map((slide) => prepareHeroSlide(slide)));
-    } catch {
-      /* continue with whatever loaded */
-    }
-
-    showHeroSlide(heroIndex, { immediate: true });
-    scheduleHeroCaptionEnter();
-
-    if (heroSlides.length > 1) {
-      syncHeroRotation();
-
-      document.addEventListener('visibilitychange', syncHeroRotation);
-
-      const heroSection = document.getElementById('home');
-      if (heroSection && 'IntersectionObserver' in window) {
-        const heroVisibilityObserver = new IntersectionObserver((entries) => {
-          heroInView = entries[0]?.isIntersecting ?? true;
-          syncHeroRotation();
-        }, { threshold: 0 });
-        heroVisibilityObserver.observe(heroSection);
-      }
-    }
-  }
-
-  initHero();
-
-  if (heroScrollLink) {
-    heroScrollLink.addEventListener('click', (event) => {
-      const targetId = heroScrollLink.getAttribute('href');
-      if (!targetId || !targetId.startsWith('#')) return;
-      const target = document.querySelector(targetId);
-      if (!target) return;
-
-      event.preventDefault();
-      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      target.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
-    });
-  }
-
-  // ==========================================
-  // Scroll Reveal
-  // ==========================================
-  document.querySelectorAll('.art-card').forEach((card, index) => {
-    card.classList.add('reveal');
-    card.style.setProperty('--reveal-index', index);
-  });
-
-  const revealElements = document.querySelectorAll('.reveal');
-
-  function revealIfInView(el) {
-    const rect = el.getBoundingClientRect();
-    if (rect.top < window.innerHeight * 0.92 && rect.bottom > 0) {
-      el.classList.add('visible');
-      return true;
-    }
-    return false;
-  }
-
-  if (revealElements.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const revealObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          revealObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.05, rootMargin: '0px 0px -40px 0px' });
-
-    revealElements.forEach(el => {
-      if (!revealIfInView(el)) revealObserver.observe(el);
-    });
-  } else {
-    revealElements.forEach(el => el.classList.add('visible'));
-  }
-
-  // ==========================================
-  // Back to Top
-  // ==========================================
-  const backToTop = document.getElementById('back-to-top');
-
-  const updateBackToTop = () => {
-    if (window.scrollY > 600) {
-      backToTop?.classList.add('visible');
-    } else {
-      backToTop?.classList.remove('visible');
-    }
-  };
-
-  backToTop?.addEventListener('click', () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
-
-  // ==========================================
-  // Gallery Filtering
-  // ==========================================
-  const filterButtons = document.querySelectorAll('.filter-btn');
-  const artCards = document.querySelectorAll('.art-card');
-  const galleryClusters = document.querySelectorAll('.gallery-cluster');
-  const topLevelCards = document.querySelectorAll('.gallery-grid > .art-card');
-
-  let activeMainFilter = 'all';
-
-  function showCard(card) {
-    card.classList.remove('hidden');
-    card.style.display = 'flex';
-  }
-
-  function hideCard(card) {
-    card.classList.add('hidden');
-    card.style.display = 'none';
-  }
-
-  function applyGalleryFilters() {
-    topLevelCards.forEach(card => {
-      const matches = activeMainFilter === 'all' || card.getAttribute('data-category') === activeMainFilter;
-      if (matches) showCard(card); else hideCard(card);
-    });
-
-    galleryClusters.forEach(cluster => {
-      const matches = activeMainFilter === 'all' || cluster.getAttribute('data-category') === activeMainFilter;
-      const clusterCards = cluster.querySelectorAll('.art-card');
-      if (matches) {
-        cluster.classList.remove('hidden');
-        clusterCards.forEach(showCard);
-      } else {
-        cluster.classList.add('hidden');
-        clusterCards.forEach(hideCard);
-      }
-    });
-  }
-
-  filterButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      filterButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeMainFilter = btn.getAttribute('data-filter') || 'all';
-      applyGalleryFilters();
-    });
-  });
 
   // ==========================================
   // Lightbox Modal
   // ==========================================
   const lightbox = document.getElementById('lightbox');
+  if (!lightbox) return;
+
   const lightboxImage = document.getElementById('lightbox-image');
   const lightboxTitle = document.getElementById('lightbox-title');
   const lightboxMeta = document.getElementById('lightbox-meta');
@@ -520,24 +65,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const lightboxPrev = document.getElementById('lightbox-prev');
   const lightboxNext = document.getElementById('lightbox-next');
   const lightboxInquireBtn = document.getElementById('lightbox-inquire-btn');
-  const contactForm = document.getElementById('contact-form');
-  const subjectInput = document.getElementById('subject');
-  const messageInput = document.getElementById('message');
+  const artCards = document.querySelectorAll('.art-card');
 
   const availabilityCopy = {
-    available:         { label: 'Available',       cta: 'Acquire this work',          href: '#contact' },
-    inquire:           { label: 'Inquire',         cta: 'Inquire about this work',    href: '#contact' },
+    available:         { label: 'Available',       cta: 'Acquire this work',          href: 'contact.html' },
+    inquire:           { label: 'Inquire',         cta: 'Inquire about this work',    href: 'contact.html' },
     'print-available': { label: 'Print Available', cta: 'View Prints in the Shop',    href: 'shop.html' },
-    sold:              { label: 'Sold',            cta: 'Inquire about similar work', href: '#contact' }
+    sold:              { label: 'Sold',            cta: 'Inquire about similar work', href: 'contact.html' }
   };
 
   const visibleCards = () =>
-    Array.from(artCards).filter(card => {
-      const img = card.querySelector('.art-image-wrapper img');
-      const cluster = card.closest('.gallery-cluster');
-      if (cluster?.classList.contains('hidden')) return false;
-      return img && !card.classList.contains('hidden') && card.style.display !== 'none';
-    });
+    Array.from(artCards).filter((card) => card.querySelector('.art-image-wrapper img'));
 
   let currentCardIndex = 0;
   let currentSlideIndex = 0;
@@ -555,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return [{
       src: img.getAttribute('src'),
       title: card.querySelector('.art-title')?.textContent || '',
-      meta: card.querySelector('.art-meta')?.textContent || ''
+      meta: card.querySelector('.art-meta')?.textContent?.replace(/\s*·\s*\d{4}\s*$/, '') || ''
     }];
   }
 
@@ -601,15 +139,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (lightboxTitle) lightboxTitle.textContent = slide.title;
-    if (lightboxMeta) lightboxMeta.innerHTML = `${slide.meta} &bull; ${year}`;
+    if (lightboxMeta) lightboxMeta.innerHTML = year ? `${slide.meta} &bull; ${year}` : slide.meta;
 
     const availabilityKey = card.dataset.availability || '';
     const availability = availabilityCopy[availabilityKey];
     if (lightboxAvailability) {
-      // 'inquire' is the default state — its badge just duplicates the inquire
-      // button below, so only surface badges that convey real status
-      // (e.g. Print Available, Sold).
-      if (availability && availabilityKey !== 'inquire') {
+      if (availability) {
         lightboxAvailability.textContent = availability.label;
         lightboxAvailability.dataset.status = availabilityKey;
         lightboxAvailability.classList.add('active');
@@ -627,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (lightboxInquireBtn) {
       lightboxInquireBtn.textContent = availability?.cta || 'Inquire about this work';
-      lightboxInquireBtn.setAttribute('href', availability?.href || '#contact');
+      lightboxInquireBtn.setAttribute('href', availability?.href || 'contact.html');
       lightboxInquireBtn.dataset.action = availabilityKey === 'print-available' ? 'shop' : 'inquire';
     }
 
@@ -652,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function openLightbox(cardIndex, slideIndex = 0) {
     const cards = visibleCards();
-    if (!cards.length || !lightbox) return;
+    if (!cards.length) return;
 
     currentCardIndex = ((cardIndex % cards.length) + cards.length) % cards.length;
     fillLightbox(cards[currentCardIndex], slideIndex);
@@ -693,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  artCards.forEach(card => {
+  artCards.forEach((card) => {
     card.addEventListener('click', () => {
       const img = card.querySelector('.art-image-wrapper img');
       if (!img) return;
@@ -705,7 +240,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   const closeLightbox = () => {
-    if (!lightbox) return;
     const wasOpen = lightbox.classList.contains('active');
 
     lightbox.classList.remove('active');
@@ -716,9 +250,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     syncMainHiddenState();
     setTimeout(() => {
-      // If the lightbox was reopened during the close delay, skip cleanup —
-      // otherwise we'd wipe the src/thumbs of the freshly opened work.
-      if (lightbox.classList.contains('active')) return;
       if (lightboxThumbs) {
         lightboxThumbs.innerHTML = '';
         lightboxThumbs.classList.remove('active');
@@ -730,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, MODAL_TRANSITION_MS);
   };
 
-  lightboxClose.addEventListener('click', closeLightbox);
+  lightboxClose?.addEventListener('click', closeLightbox);
 
   lightbox.addEventListener('click', (e) => {
     if (e.target === lightbox) closeLightbox();
@@ -747,11 +278,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Tab' && navWrapper?.classList.contains('open')) {
-      trapFocus(navWrapper, e);
-      return;
-    }
-
     if (!lightbox.classList.contains('active')) return;
     if (e.key === 'Tab') {
       trapFocus(lightbox, e);
@@ -764,12 +290,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let lightboxTouchStartX = 0;
 
-  lightbox?.addEventListener('touchstart', (e) => {
+  lightbox.addEventListener('touchstart', (e) => {
     if (!lightbox.classList.contains('active')) return;
     lightboxTouchStartX = e.changedTouches[0]?.screenX ?? 0;
   }, { passive: true });
 
-  lightbox?.addEventListener('touchend', (e) => {
+  lightbox.addEventListener('touchend', (e) => {
     if (!lightbox.classList.contains('active')) return;
     const touchEndX = e.changedTouches[0]?.screenX ?? 0;
     const diff = lightboxTouchStartX - touchEndX;
@@ -786,142 +312,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     e.preventDefault();
-    const title = lightboxTitle.textContent.trim();
+    const title = lightboxTitle?.textContent.trim();
     if (!title) return;
 
     closeLightbox();
-
-    if (subjectInput) {
-      subjectInput.value = `Inquiry: ${title}`;
-      subjectInput.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-
-    if (messageInput && !messageInput.value.trim()) {
-      messageInput.value = `Hello,\n\nI am interested in learning more about "${title}". Please share any details on availability, pricing, or viewing options.\n\nThank you.`;
-      messageInput.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-
-    const contactSection = document.getElementById('contact');
-    contactSection?.scrollIntoView({ behavior: 'smooth' });
-
-    setTimeout(() => {
-      const nameInput = document.getElementById('name');
-      nameInput?.focus({ preventScroll: true });
-    }, 600);
+    window.location.href = `contact.html?inquiry=${encodeURIComponent(title)}`;
   });
-
-  // ==========================================
-  // Scroll Spy (Active Nav Link Styling)
-  // ==========================================
-  const sections = document.querySelectorAll('section[id]');
-  const navLinks = document.querySelectorAll('.nav-link');
-
-  if (sections.length && navLinks.length) {
-    const sectionObserver = new IntersectionObserver((entries) => {
-      const visible = entries
-        .filter(entry => entry.isIntersecting)
-        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-
-      if (!visible) return;
-
-      const id = visible.target.getAttribute('id');
-      navLinks.forEach(link => {
-        link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
-      });
-    }, {
-      rootMargin: '-35% 0px -55% 0px',
-      threshold: 0.25
-    });
-
-    sections.forEach(section => sectionObserver.observe(section));
-  }
-
-  const runScrollUpdates = onScrollFrame(() => {
-    handleScroll();
-    updateBackToTop();
-  });
-
-  window.addEventListener('scroll', runScrollUpdates, { passive: true });
-  handleScroll();
-  updateBackToTop();
-
-  // ==========================================
-  // Contact Form Submission
-  // Posts to data-endpoint when configured (Formspree, Basin, Netlify Forms),
-  // otherwise runs a local simulation so the form still feels responsive.
-  // ==========================================
-  const formMessage = document.getElementById('form-message');
-  const SUCCESS_TEXT = 'Thank you. Your message has been sent successfully.';
-  const ERROR_TEXT = 'Sorry — something went wrong. Please email info@beaurancethompson.com directly.';
-
-  function showFormStatus(state) {
-    if (!formMessage) return;
-    formMessage.classList.remove('success', 'error');
-    if (state === 'success') {
-      formMessage.textContent = SUCCESS_TEXT;
-      formMessage.classList.add('success');
-    } else if (state === 'error') {
-      formMessage.textContent = ERROR_TEXT;
-      formMessage.classList.add('error');
-    }
-  }
-
-  if (contactForm) {
-    contactForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const submitBtn = contactForm.querySelector('.submit-btn');
-      const originalText = submitBtn.textContent;
-      const endpoint = contactForm.dataset.endpoint?.trim();
-
-      submitBtn.textContent = 'Sending...';
-      submitBtn.disabled = true;
-
-      const restore = () => {
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
-      };
-
-      const clearAfter = (ms) => {
-        setTimeout(() => {
-          formMessage?.classList.remove('success', 'error');
-          formMessage.textContent = SUCCESS_TEXT;
-        }, ms);
-      };
-
-      if (endpoint) {
-        try {
-          const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: { Accept: 'application/json' },
-            body: new FormData(contactForm)
-          });
-
-          restore();
-
-          if (response.ok) {
-            showFormStatus('success');
-            contactForm.reset();
-            clearAfter(6000);
-          } else {
-            showFormStatus('error');
-            clearAfter(8000);
-          }
-        } catch {
-          restore();
-          showFormStatus('error');
-          clearAfter(8000);
-        }
-        return;
-      }
-
-      setTimeout(() => {
-        restore();
-        showFormStatus('success');
-        contactForm.reset();
-        clearAfter(5000);
-      }, 1200);
-    });
-  }
-
 });

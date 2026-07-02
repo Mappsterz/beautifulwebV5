@@ -58,13 +58,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Clip at the root too: off-canvas panels (cart drawer, mobile nav) are
-   position:fixed, so body's overflow-x:hidden can't contain them — without
-   this they extend the scroll width and cause a horizontal scroll on mobile. */
-html {
-  overflow-x: hidden;
-}
-
 body.menu-open {
   overflow: hidden;
 }
@@ -294,8 +287,6 @@ nav a.active::after, nav a:hover::after {
   position: absolute;
   inset: 0;
   isolation: isolate;
-  /* Isolate the slide stack so crossfade repaints never reflow/repaint the page. */
-  contain: layout paint;
 }
 
 .hero-slide {
@@ -307,10 +298,6 @@ nav a.active::after, nav a:hover::after {
   opacity: 0;
   z-index: 0;
   pointer-events: none;
-  /* Promote each slide to its own GPU layer so the crossfade is a cheap
-     compositor opacity blend instead of a full-viewport repaint each frame. */
-  transform: translateZ(0);
-  backface-visibility: hidden;
 }
 
 .hero-slide.is-visible {
@@ -323,12 +310,6 @@ nav a.active::after, nav a:hover::after {
   opacity: 0;
   will-change: opacity;
   animation: heroCrossfade var(--duration-hero) linear forwards;
-}
-
-/* While a crossfade runs, hint the compositor on the outgoing layer too so
-   both sides of the blend stay off the main thread. JS toggles this class. */
-.hero-slides.is-transitioning .hero-slide.is-visible {
-  will-change: opacity;
 }
 
 @keyframes heroCrossfade {
@@ -381,7 +362,7 @@ html.is-loaded .hero-animate {
 
 .hero-slide--bison {
   object-position: center 46%;
-  transform: scale(1.12) translateZ(0);
+  transform: scale(1.12);
   transform-origin: center center;
 }
 
@@ -471,24 +452,18 @@ html.is-loaded .hero-animate {
   text-align: left;
   opacity: 0;
   pointer-events: none;
-  /* Keep the mid-crossfade text swap from triggering a page-level reflow. */
-  contain: layout paint;
-  /* Persistent compositor layer so the caption fade/slide runs on the GPU,
-     independent of the main thread doing image-crossfade work. */
-  transform: translate3d(0, 0, 0);
-  will-change: opacity, transform;
 }
 
 html.is-loaded .hero-caption.has-entered.active:not(.is-changing) {
   opacity: 1;
-  transform: translate3d(0, 0, 0);
+  transform: translateY(0);
   transition: opacity calc(var(--duration-hero) * 0.45) var(--ease-hero),
               transform calc(var(--duration-hero) * 0.45) var(--ease-hero);
 }
 
 .hero-caption.is-changing {
   opacity: 0;
-  transform: translate3d(0, 6px, 0);
+  transform: translateY(6px);
   transition: opacity calc(var(--duration-hero) * 0.45) var(--ease-hero),
               transform calc(var(--duration-hero) * 0.45) var(--ease-hero);
   transition-delay: 0ms;
@@ -913,7 +888,7 @@ picture {
 
 .about-tagline {
   font-family: var(--font-serif);
-  font-size: clamp(1.4rem, 5.5vw, 2rem);
+  font-size: 2rem;
   line-height: 1.3;
   color: var(--text-primary);
 }
@@ -948,7 +923,7 @@ picture {
 
 .contact-statement {
   font-family: var(--font-serif);
-  font-size: clamp(1.3rem, 5vw, 1.75rem);
+  font-size: 1.75rem;
   line-height: 1.4;
 }
 
@@ -1090,57 +1065,33 @@ textarea.form-input {
   left: 0;
   width: 100vw;
   height: 100vh;
-  /* Slightly lower alpha + backdrop blur = frosted glass; the blur keeps
-     page content behind the details text from competing with it. */
-  background-color: rgba(247, 245, 242, 0.88);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
+  background-color: rgba(247, 245, 242, 0.94);
   z-index: 1000;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 2rem;
   opacity: 0;
-  /* visibility:hidden fully removes the overlay (and its backdrop-filter) from
-     compositing when closed — without it, WebKit keeps blurring the gallery
-     behind an opacity:0 overlay, which makes thumbnails look clipped/hazy.
-     The 0s visibility transition is delayed so it flips off only after the
-     opacity fade completes. */
-  visibility: hidden;
   pointer-events: none;
-  transition: opacity var(--duration-base) var(--ease-standard),
-              visibility 0s linear var(--duration-base);
-  /* Safety net: if a work's details (badge, thumbs, button) outgrow the
-     viewport, let the lightbox scroll instead of cutting the button off. */
-  overflow-y: auto;
+  transition: opacity var(--duration-base) var(--ease-standard);
 }
 
 .lightbox.active {
   opacity: 1;
-  visibility: visible;
   pointer-events: auto;
-  transition: opacity var(--duration-base) var(--ease-standard);
-  /* Keep the frosted overlay on its own GPU layer during the fade so the
-     compositor alpha-blends a cached blur instead of re-rasterizing
-     backdrop-filter every frame (the cause of mobile open-jitter). */
-  will-change: opacity;
 }
 
 .lightbox-content {
   display: flex;
   flex-direction: column;
   max-width: 90vw;
+  max-height: 85vh;
   position: relative;
   align-items: center;
-  /* margin:auto centers like align-items:center, but without clipping the
-     top of the content when it's taller than the viewport and scrolls. */
-  margin: auto;
 }
 
 .lightbox-image-wrapper {
-  /* 58vh (not 70) leaves room below for title, meta, badge, thumbnails, and
-     the inquire button, so series works fit on screen without scrolling. */
-  max-height: 58vh;
+  max-height: 70vh;
   margin-bottom: 1.5rem;
   display: flex;
   justify-content: center;
@@ -1175,7 +1126,7 @@ textarea.form-input {
 
 .lightbox-image {
   max-width: 100%;
-  max-height: 58vh;
+  max-height: 70vh;
   object-fit: contain;
   border: 1px solid var(--border-color);
 }
@@ -1192,14 +1143,10 @@ textarea.form-input {
 }
 
 .lightbox-meta {
-  /* Block, not inline: keeps the availability badge from flowing into the
-     wrapped meta text on narrow screens (badge lands mid-sentence). */
-  display: block;
   font-size: 0.85rem;
   font-weight: 300;
   color: var(--text-secondary);
   letter-spacing: 0.02em;
-  line-height: 1.55;
 }
 
 .lightbox-availability {
@@ -1329,37 +1276,32 @@ textarea.form-input {
   top: 50%;
   transform: translateY(-50%);
   background: none;
-  border: none;
-  width: 56px;
-  height: 56px;
+  border: 1px solid var(--border-color);
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border-radius: 50%;
-  transition: background-color var(--duration-fast) var(--ease-standard);
-}
-
-/* Minimal chevron — no box, just a light glyph that firms up on hover. */
-.lightbox-nav svg {
-  width: 2rem;
-  height: 2rem;
-  stroke: var(--text-muted);
-  stroke-width: 1.25;
-  fill: none;
-  transition: stroke var(--duration-fast) var(--ease-standard);
+  transition: border-color var(--duration-fast) var(--ease-standard),
+              background-color var(--duration-fast) var(--ease-standard);
+  background-color: var(--bg-primary);
 }
 
 .lightbox-nav:hover {
-  background-color: rgba(20, 20, 20, 0.05);
+  border-color: var(--border-dark);
 }
 
-.lightbox-nav:hover svg {
+.lightbox-nav svg {
+  width: 1.25rem;
+  height: 1.25rem;
   stroke: var(--text-primary);
+  stroke-width: 1.5;
+  fill: none;
 }
 
-.lightbox-prev { left: -4.25rem; }
-.lightbox-next { right: -4.25rem; }
+.lightbox-prev { left: -5rem; }
+.lightbox-next { right: -5rem; }
 
 /* Featured Shop Banner */
 .featured-banner {
@@ -1677,7 +1619,7 @@ footer {
   .hero-caption {
     left: 50%;
     bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
-    transform: translate3d(-50%, 0, 0);
+    transform: translateX(-50%);
     text-align: center;
     align-items: center;
     max-width: calc(100% - 2rem);
@@ -1685,11 +1627,11 @@ footer {
 
   html.is-loaded .hero-caption.hero-animate,
   html.is-loaded .hero-caption.has-entered.active:not(.is-changing) {
-    transform: translate3d(-50%, 0, 0);
+    transform: translateX(-50%) translateY(0);
   }
 
   .hero-caption.is-changing {
-    transform: translate3d(-50%, 6px, 0);
+    transform: translateX(-50%) translateY(6px);
   }
 
   .hero-scroll {
@@ -1809,10 +1751,6 @@ footer {
     align-items: flex-start;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    /* Lighter blur on mobile — cheaper for the phone GPU to composite during
-       the fade-in, reducing open-jitter. Still reads as frosted glass. */
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
     padding:
       calc(0.75rem + env(safe-area-inset-top, 0px))
       calc(0.75rem + env(safe-area-inset-right, 0px))
@@ -1863,20 +1801,9 @@ footer {
     width: 44px;
     height: 44px;
     z-index: 1001;
-    /* Match the nav arrows: soft frosted disc instead of a hard square. */
-    border-radius: 50%;
-    border: none;
-    background-color: rgba(255, 255, 255, 0.6);
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
     transform: none;
-  }
-
-  .lightbox-close svg {
-    width: 1.35rem;
-    height: 1.35rem;
-    stroke: var(--text-secondary);
-    stroke-width: 1.25;
   }
 
   .lightbox-close:hover {
@@ -1886,15 +1813,10 @@ footer {
   .lightbox-nav {
     position: fixed;
     top: auto;
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
     transform: none;
     z-index: 1001;
-    /* Soft translucent disc instead of a hard white square, so the chevron
-       stays tappable over content without feeling heavy. */
-    background-color: rgba(255, 255, 255, 0.6);
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
   }
 
   .lightbox-prev {
@@ -1945,6 +1867,15 @@ footer {
     padding: 1.5rem 1.25rem;
   }
 
+  .shop-header-layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .shop-header-image {
+    max-width: 280px;
+  }
+
   .product-modal-overlay {
     align-items: flex-end;
     padding:
@@ -1975,6 +1906,17 @@ footer {
   .product-modal-nav {
     width: 48px;
     height: 48px;
+  }
+
+  .product-modal-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .product-modal-image {
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    min-height: 280px;
+    padding: 1.5rem;
   }
 
   .product-modal-details {
@@ -2019,19 +1961,6 @@ footer {
   .featured-banner-inner:hover .featured-banner-image img,
   .product-card:hover .product-image-wrapper img {
     transform: none;
-  }
-
-  /* iOS fires :hover on tap, and the rule above would wipe the crop-positioning
-     transform on these three thumbnails — making the image snap out of frame
-     the instant you tap to open the lightbox (reads as jitter). Re-assert their
-     transforms so a tap can't dislodge them. */
-  .art-card:hover .art-image-wrapper--highland-cow img {
-    transform: translate(-50%, -46%);
-  }
-
-  .art-card:hover .art-image-wrapper--crab img,
-  .art-card:hover .art-image-wrapper--fan img {
-    transform: translate(-50%, -50%);
   }
 
   .art-card:hover .art-image-wrapper::after {
@@ -2401,35 +2330,17 @@ footer {
   border-bottom: none;
 }
 
-/* Mobile-first: single column by default, two columns on wider screens.
-   (The desktop two-column rule must live in a min-width query, not the base,
-   because this component is defined after the max-width:768px block — a base
-   two-column rule would override the mobile stack and overflow the viewport.) */
 .shop-header-layout {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
+  grid-template-columns: 280px 1fr;
+  gap: 3rem;
   align-items: center;
-}
-
-@media (min-width: 769px) {
-  .shop-header-layout {
-    grid-template-columns: 280px 1fr;
-    gap: 3rem;
-  }
 }
 
 .shop-header-image {
   aspect-ratio: 1;
   overflow: hidden;
   border: 1px solid var(--border-color);
-  max-width: 280px;
-}
-
-@media (min-width: 769px) {
-  .shop-header-image {
-    max-width: none;
-  }
 }
 
 .shop-header-image img {
@@ -2476,64 +2387,6 @@ footer {
 .btn-add-to-cart:hover {
   background-color: var(--accent);
   color: var(--bg-primary);
-}
-
-/* Shop on Etsy CTA — replaces the old cart/checkout flow */
-.btn-etsy {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  background-color: var(--accent);
-  color: var(--bg-primary);
-  border: 1px solid var(--accent);
-  padding: 0.85rem 1.6rem;
-  font-family: var(--font-sans);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background-color var(--duration-base) var(--ease-standard),
-              color var(--duration-base) var(--ease-standard);
-}
-
-.btn-etsy svg {
-  flex-shrink: 0;
-}
-
-.btn-etsy:hover {
-  background-color: transparent;
-  color: var(--accent);
-}
-
-.shop-header-text .btn-etsy {
-  margin-top: 1.75rem;
-}
-
-/* Full-width variant for the product modal */
-.btn-etsy--block {
-  width: 100%;
-  margin-top: 1.5rem;
-}
-
-/* Subtle prompt on each product card hinting at the detail modal */
-.product-cta-hint {
-  display: inline-block;
-  margin-top: 1.1rem;
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.product-modal-fulfillment {
-  margin-top: 1.25rem;
-  font-size: 0.85rem;
-  line-height: 1.6;
-  color: var(--text-secondary);
 }
 
 /* Cart Side Drawer */
@@ -2897,39 +2750,22 @@ footer {
   border-color: var(--border-dark);
 }
 
-/* Mobile-first: stacked by default, side-by-side on wider screens. Defined
-   here (after the max-width:768px block) so the base must carry the mobile
-   layout — a base two-column rule would override the stack and cramp the
-   modal on phones. */
 .product-modal-layout {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 0;
 }
 
 .product-modal-image {
   background: #ffffff;
-  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem;
-  min-height: 280px;
+  padding: 2rem;
+  min-height: 420px;
   gap: 1rem;
-}
-
-@media (min-width: 769px) {
-  .product-modal-layout {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .product-modal-image {
-    border-right: 1px solid var(--border-color);
-    border-bottom: none;
-    padding: 2rem;
-    min-height: 420px;
-  }
 }
 
 .product-modal-image-stage {
@@ -3218,3 +3054,169 @@ footer {
     padding: 1.25rem;
   }
 }
+
+/* ==========================================
+   Ultra-minimal works feed & page layout
+   ========================================== */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+body.site-minimal {
+  background-color: var(--bg-primary);
+}
+
+body.site-page {
+  background-color: var(--bg-primary);
+}
+
+.site-header .nav-container {
+  height: 3.5rem;
+}
+
+.site-header.scrolled .nav-container {
+  height: 3.5rem;
+}
+
+.site-header .logo {
+  font-size: 1.15rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.works-feed {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: calc(3.5rem + env(safe-area-inset-top, 0px) + 3rem) 1.25rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 5rem;
+}
+
+.works-feed .work-item {
+  margin: 0;
+}
+
+.works-feed .work-figure {
+  margin: 0;
+}
+
+.works-feed .art-image-wrapper {
+  aspect-ratio: auto;
+  height: auto;
+  overflow: visible;
+  margin-bottom: 0;
+  border: none;
+  background: transparent;
+}
+
+.works-feed .art-image-wrapper img {
+  position: static;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  transform: none;
+  inset: auto;
+  left: auto;
+  top: auto;
+}
+
+.works-feed .art-image-wrapper--highland-cow img,
+.works-feed .art-image-wrapper--crab img,
+.works-feed .art-image-wrapper--fan img {
+  width: 100%;
+  height: auto;
+  transform: none;
+}
+
+.works-feed .art-image-wrapper::after {
+  display: none;
+}
+
+.works-feed .work-caption {
+  margin-top: 0.75rem;
+  text-align: left;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.works-feed .work-title {
+  font-weight: 400;
+  color: var(--text-primary);
+}
+
+.works-feed .work-meta {
+  font-weight: 300;
+  color: var(--text-muted);
+}
+
+.works-feed .art-info {
+  padding: 0;
+}
+
+.page-content {
+  padding-top: calc(3.5rem + env(safe-area-inset-top, 0px) + 3rem);
+  padding-bottom: 4rem;
+}
+
+.page-inner {
+  max-width: 720px;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  margin-bottom: 2.5rem;
+}
+
+.page-content .about-layout {
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+}
+
+.page-content .about-tagline {
+  font-size: 1.15rem;
+  margin-bottom: 1.5rem;
+}
+
+.page-content .contact-layout {
+  grid-template-columns: 1fr;
+  gap: 3rem;
+}
+
+.page-content .contact-statement {
+  font-size: 1.05rem;
+}
+
+@media (max-width: 768px) {
+  .works-feed {
+    gap: 4rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .page-content {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .page-inner.container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script>
+    (function () {
+      if (!location.hostname.endsWith('github.io')) return;
+      var segment = location.pathname.split('/').filter(Boolean)[0];
+      if (!segment || segment.includes('.')) return;
+      var base = document.createElement('base');
+      base.href = '/' + segment + '/';
+      document.head.insertBefore(base, document.head.firstChild);
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Contact | Beau Thompson</title>
+  <meta name="description" content="Contact Beau Thompson for inquiries, commission requests, or studio visits.">
+  <meta name="theme-color" content="#f5f0ea">
+
+  <link rel="canonical" href="https://beaurancethompson.com/contact.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap">
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="assets/highland-cow.webp">
+
+  <link rel="stylesheet" href="style.css?v=20">
+</head>
+<body class="site-page">
+
+  <a href="#contact-content" class="skip-link">Skip to content</a>
+
+  <header id="header" class="site-header">
+    <div class="container nav-container">
+      <a href="index.html" class="logo">Beau Thompson</a>
+      <button class="menu-toggle" id="menu-toggle" aria-label="Open menu" aria-controls="nav-wrapper" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-overlay" id="nav-overlay"></div>
+      <div class="nav-wrapper" id="nav-wrapper">
+        <nav>
+          <ul>
+            <li><a href="index.html" class="nav-link">Works</a></li>
+            <li><a href="about.html" class="nav-link">About</a></li>
+            <li><a href="contact.html" class="nav-link active">Contact</a></li>
+            <li><a href="shop.html" class="nav-link">Shop</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main id="site-main" class="page-content">
+    <div class="container page-inner" id="contact-content">
+      <h1 class="page-title">Contact</h1>
+
+      <div class="contact-layout">
+        <div class="contact-info">
+          <h2 class="contact-statement">For inquiries, commission requests, or studio visits, please write a message or get in touch directly.</h2>
+          <div class="contact-details">
+            <div class="contact-item">
+              <span class="contact-label">Email</span>
+              <span class="contact-value"><a href="mailto:info@beaurancethompson.com">info@beaurancethompson.com</a></span>
+            </div>
+            <div class="contact-item">
+              <span class="contact-label">Instagram</span>
+              <span class="contact-value"><a href="https://www.instagram.com/archoneye/" target="_blank" rel="noopener noreferrer">@archoneye</a></span>
+            </div>
+            <div class="contact-item">
+              <span class="contact-label">Location</span>
+              <span class="contact-value">United States</span>
+            </div>
+          </div>
+        </div>
+
+        <form class="contact-form" id="contact-form" data-endpoint="" method="POST" novalidate>
+          <div class="form-group">
+            <input type="text" id="name" name="name" class="form-input" placeholder=" " required autocomplete="name">
+            <label for="name" class="form-label">Name</label>
+          </div>
+
+          <div class="form-group">
+            <input type="email" id="email" name="email" class="form-input" placeholder=" " required autocomplete="email">
+            <label for="email" class="form-label">Email Address</label>
+          </div>
+
+          <div class="form-group">
+            <input type="text" id="subject" name="subject" class="form-input" placeholder=" ">
+            <label for="subject" class="form-label">Subject</label>
+          </div>
+
+          <div class="form-group">
+            <textarea id="message" name="message" class="form-input" placeholder=" " required></textarea>
+            <label for="message" class="form-label">Message</label>
+          </div>
+
+          <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" class="form-honeypot">
+
+          <button type="submit" class="submit-btn">Send Message</button>
+          <div class="form-message" id="form-message">Thank you. Your message has been sent successfully.</div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container footer-content">
+      <span class="footer-copy">&copy; 2026 Beau Thompson. All rights reserved.</span>
+      <ul class="footer-social">
+        <li><a href="shop.html">Shop</a></li>
+        <li><a href="https://www.instagram.com/archoneye/" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+        <li><a href="mailto:info@beaurancethompson.com">Email</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script src="nav.js?v=1" defer></script>
+  <script src="contact.js?v=1" defer></script>
+</body>
+</html>
