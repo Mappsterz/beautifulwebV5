@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let scrollLockDepth = 0;
   let savedScrollY = 0;
   let lastMenuFocusedElement = null;
+  let lastCartFocusedElement = null;
   let lastProductModalFocusedElement = null;
 
   function lockPageScroll() {
@@ -73,8 +74,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function syncMainHiddenState() {
     const menuOpen = navWrapper?.classList.contains('open');
+    const cartOpen = document.getElementById('cart-drawer')?.classList.contains('active');
     const productOpen = document.getElementById('product-modal-overlay')?.classList.contains('active');
-    setMainHidden(Boolean(menuOpen || productOpen));
+    setMainHidden(Boolean(menuOpen || cartOpen || productOpen));
   }
 
   function closeMenu() {
@@ -160,11 +162,29 @@ document.addEventListener('DOMContentLoaded', () => {
     revealElements.forEach(el => el.classList.add('visible'));
   }
 
-  // --- Product Gallery Modal ---
+  // --- Cart State ---
+  let cart = [];
+  let activeProductCard = null;
   let activeProductGallery = [];
   let activeProductGalleryIndex = 0;
+  let paypalInitialized = false;
 
+  // --- DOM Elements ---
   const header = document.getElementById('header');
+  const cartNavBtn = document.getElementById('cart-nav-btn');
+  const cartCloseBtn = document.getElementById('cart-close-btn');
+  const cartOverlay = document.getElementById('cart-overlay');
+  const cartDrawer = document.getElementById('cart-drawer');
+  const cartItemsList = document.getElementById('cart-items-list');
+  const cartBadge = document.getElementById('cart-badge');
+  const cartSubtotal = document.getElementById('cart-subtotal');
+  const checkoutBtn = document.getElementById('checkout-btn');
+  const checkoutStatus = document.getElementById('checkout-status');
+  const paypalButtonContainer = document.getElementById('paypal-button-container');
+  const successModal = document.getElementById('success-modal-overlay');
+  const successModalTitle = document.getElementById('success-modal-title');
+  const successModalMessage = document.getElementById('success-modal-message');
+  const successModalCloseBtn = document.getElementById('success-modal-close-btn');
   const productModalOverlay = document.getElementById('product-modal-overlay');
   const productModal = document.getElementById('product-modal');
   const productModalClose = document.getElementById('product-modal-close');
@@ -177,6 +197,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const productModalPrice = document.getElementById('product-modal-price');
   const productModalMeta = document.getElementById('product-modal-meta');
   const productModalDescription = document.getElementById('product-modal-description');
+  const productModalOptions = document.getElementById('product-modal-options');
+  const productModalAddBtn = document.getElementById('product-modal-add-btn');
+  const paypalConfig = window.PAYPAL_CONFIG || {};
+  const paypalClientId = paypalConfig.clientId || '';
+  const PAYPAL_CREATE_ORDER_URL = '/api/paypal/create-order';
+  const PAYPAL_CAPTURE_ORDER_URL = '/api/paypal/capture-order';
 
   // --- Dynamic Scroll Header ---
   const updateHeaderScroll = () => {
@@ -190,10 +216,37 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('scroll', onScrollFrame(updateHeaderScroll), { passive: true });
   updateHeaderScroll();
 
+  // --- Cart Drawer Toggles ---
+  function openCart() {
+    lastCartFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    cartDrawer.classList.add('active');
+    cartOverlay.classList.add('active');
+    lockPageScroll();
+    initPayPalCheckout();
+    cartCloseBtn?.focus();
+    syncMainHiddenState();
+  }
+
+  function closeCart() {
+    if (!cartDrawer.classList.contains('active')) return;
+    cartDrawer.classList.remove('active');
+    cartOverlay.classList.remove('active');
+    unlockPageScroll();
+    if (lastCartFocusedElement instanceof HTMLElement) {
+      lastCartFocusedElement.focus();
+    }
+    syncMainHiddenState();
+  }
+
+  cartNavBtn.addEventListener('click', openCart);
+  cartCloseBtn.addEventListener('click', closeCart);
+  cartOverlay.addEventListener('click', closeCart);
+
   function closeProductModal() {
     if (!productModalOverlay?.classList.contains('active')) return;
     productModalOverlay?.classList.remove('active');
     productModalOverlay?.setAttribute('aria-hidden', 'true');
+    activeProductCard = null;
     activeProductGallery = [];
     activeProductGalleryIndex = 0;
     unlockPageScroll();
@@ -288,10 +341,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function openProductModal(card) {
     if (!card) return;
 
+    activeProductCard = card;
     const title = card.querySelector('.art-title')?.textContent || '';
     const price = card.querySelector('.art-year')?.textContent || '';
     const meta = card.querySelector('.art-meta')?.textContent || '';
     const description = card.getAttribute('data-description') || '';
+    const addBtn = card.querySelector('.btn-add-to-cart');
 
     productModalTitle.textContent = title;
     productModalPrice.textContent = price;
@@ -299,6 +354,13 @@ document.addEventListener('DOMContentLoaded', () => {
     productModalDescription.textContent = description;
 
     renderProductGallery(getProductGallery(card));
+
+    productModalAddBtn.setAttribute('data-id', addBtn?.getAttribute('data-id') || '');
+    productModalAddBtn.setAttribute('data-name', addBtn?.getAttribute('data-name') || '');
+    productModalAddBtn.setAttribute('data-price', addBtn?.getAttribute('data-price') || '');
+    productModalAddBtn.setAttribute('data-type', addBtn?.getAttribute('data-type') || 'apparel');
+
+    renderModalOptions(card);
 
     lastProductModalFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     productModalOverlay.classList.add('active');
@@ -345,6 +407,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    if (e.key === 'Tab' && cartDrawer?.classList.contains('active')) {
+      trapFocus(cartDrawer, e);
+      return;
+    }
+
     if (e.key === 'Tab' && navWrapper?.classList.contains('open')) {
       trapFocus(navWrapper, e);
       return;
@@ -352,6 +419,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (e.key === 'Escape') {
       closeProductModal();
+      closeCart();
+      successModal.classList.remove('active');
       return;
     }
 
@@ -366,9 +435,392 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // --- Product Option Selectors ---
+  function getSelectedOption(card, optionName) {
+    const selector = card.querySelector(`.option-selector[data-option="${optionName}"]`);
+    const activeBtn = selector?.querySelector('.option-btn.active');
+    return activeBtn?.getAttribute('data-value') || '';
+  }
+
+  function setSelectedOption(card, optionName, value) {
+    const selector = card.querySelector(`.option-selector[data-option="${optionName}"]`);
+    selector?.querySelectorAll('.option-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-value') === value);
+    });
+  }
+
+  function buildVariantId(baseId, size, color) {
+    const sizeKey = size.toLowerCase();
+    const colorKey = color.toLowerCase().replace(/\s+/g, '-');
+    return `${baseId}-${sizeKey}-${colorKey}`;
+  }
+
+  function bindOptionSelectors(scope, card) {
+    scope.querySelectorAll('.option-selector').forEach(selector => {
+      const optionName = selector.getAttribute('data-option');
+      selector.querySelectorAll('.option-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const value = btn.getAttribute('data-value') || '';
+          setSelectedOption(card, optionName, value);
+          if (activeProductCard === card) {
+            renderModalOptions(card);
+          }
+        });
+      });
+    });
+  }
+
+  function renderModalOptions(card) {
+    const options = card.querySelector('.product-options');
+    if (!options || !productModalOptions) return;
+
+    productModalOptions.innerHTML = options.innerHTML;
+    bindOptionSelectors(productModalOptions, card);
+  }
+
   document.querySelectorAll('.product-card').forEach(card => {
+    bindOptionSelectors(card, card);
+
     card.querySelector('.product-open-trigger')?.addEventListener('click', () => openProductModal(card));
     card.querySelector('.art-title-row')?.addEventListener('click', () => openProductModal(card));
     card.querySelector('.art-meta')?.addEventListener('click', () => openProductModal(card));
+  });
+
+  // --- Cart Actions ---
+  function addToCart({ id, baseId, name, price, type, image, size, color }) {
+    const existingItem = cart.find(item => item.id === id);
+
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      cart.push({
+        id,
+        baseId,
+        name,
+        price: parseFloat(price),
+        type,
+        image,
+        size,
+        color,
+        quantity: 1
+      });
+    }
+
+    updateCart();
+    closeProductModal();
+    openCart();
+  }
+
+  function addProductFromCard(card) {
+    const btn = card.querySelector('.btn-add-to-cart');
+    if (!btn) return;
+
+    const baseId = btn.getAttribute('data-id');
+    const name = btn.getAttribute('data-name');
+    const price = btn.getAttribute('data-price');
+    const type = btn.getAttribute('data-type');
+    const img = card.querySelector('.product-image-wrapper img');
+    const image = img?.getAttribute('src') || '';
+    const size = getSelectedOption(card, 'size');
+    const color = getSelectedOption(card, 'color');
+
+    if (!size || !color) return;
+
+    addToCart({
+      id: buildVariantId(baseId, size, color),
+      baseId,
+      name,
+      price,
+      type,
+      image,
+      size,
+      color
+    });
+  }
+
+  function updateQty(id, delta) {
+    const item = cart.find(entry => entry.id === id);
+    if (!item) return;
+
+    item.quantity += delta;
+    if (item.quantity <= 0) {
+      cart = cart.filter(entry => entry.id !== id);
+    }
+    updateCart();
+  }
+
+  function removeFromCart(id) {
+    cart = cart.filter(entry => entry.id !== id);
+    updateCart();
+  }
+
+  function updateCart() {
+    renderCartItems();
+    updateBadge();
+    updateSubtotal();
+  }
+
+  function updateBadge() {
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    cartBadge.textContent = totalItems;
+    cartBadge.classList.toggle('active', totalItems > 0);
+  }
+
+  function updateSubtotal() {
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    cartSubtotal.textContent = `$${total.toFixed(2)}`;
+    if (checkoutBtn) {
+      checkoutBtn.disabled = true;
+      checkoutBtn.hidden = isPayPalConfigured();
+      checkoutBtn.textContent = isPayPalConfigured()
+        ? 'PayPal Checkout'
+        : 'Configure PayPal';
+    }
+    paypalButtonContainer?.classList.toggle('is-disabled', cart.length === 0);
+  }
+
+  function isPayPalConfigured() {
+    return Boolean(paypalClientId && paypalClientId !== 'YOUR_PAYPAL_CLIENT_ID');
+  }
+
+  function setCheckoutStatus(message = '', type = 'info') {
+    if (!checkoutStatus) return;
+
+    checkoutStatus.textContent = message;
+    checkoutStatus.className = `checkout-status ${message ? 'active' : ''} ${type}`;
+  }
+
+  function buildPayPalCart() {
+    return cart.map(({ baseId, quantity, size, color }) => ({
+      baseId,
+      quantity,
+      size,
+      color
+    }));
+  }
+
+  function formatPayPalError(data, fallback) {
+    if (data?.error) return data.error;
+    if (Array.isArray(data?.details) && data.details[0]?.description) {
+      return data.details[0].description;
+    }
+    return fallback;
+  }
+
+  function handleCheckoutSuccess(orderData) {
+    cart = [];
+    updateCart();
+    closeCart();
+    setCheckoutStatus('');
+
+    if (successModalTitle) {
+      successModalTitle.textContent = 'Payment Captured';
+    }
+
+    if (successModalMessage) {
+      const transactionLine = orderData.captureId
+        ? ` PayPal transaction ID: ${orderData.captureId}.`
+        : '';
+      successModalMessage.textContent = `Thank you for supporting Beau Thompson's studio. Your payment is complete and your order is ready for fulfillment.${transactionLine}`;
+    }
+
+    successModal.classList.add('active');
+  }
+
+  function loadPayPalSdk() {
+    if (window.paypal?.Buttons) {
+      return Promise.resolve(window.paypal);
+    }
+
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      const currency = paypalConfig.currency || 'USD';
+      const intent = paypalConfig.intent || 'capture';
+
+      script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(paypalClientId)}&currency=${encodeURIComponent(currency)}&intent=${encodeURIComponent(intent)}&components=buttons`;
+      script.async = true;
+      script.onload = () => resolve(window.paypal);
+      script.onerror = () => reject(new Error('Unable to load the PayPal SDK.'));
+      document.head.appendChild(script);
+    });
+  }
+
+  async function renderPayPalButtons() {
+    if (!paypalButtonContainer) return;
+
+    if (!isPayPalConfigured()) {
+      paypalButtonContainer.hidden = true;
+      if (checkoutBtn) {
+        checkoutBtn.hidden = false;
+        checkoutBtn.disabled = true;
+        checkoutBtn.textContent = 'Configure PayPal';
+      }
+      setCheckoutStatus('Add your PayPal sandbox client ID in shop.html to enable checkout.', 'error');
+      return;
+    }
+
+    try {
+      const paypal = await loadPayPalSdk();
+      paypalButtonContainer.hidden = false;
+      if (checkoutBtn) {
+        checkoutBtn.hidden = true;
+      }
+      setCheckoutStatus('');
+
+      paypal.Buttons({
+        style: {
+          layout: 'vertical',
+          color: 'black',
+          shape: 'rect',
+          label: 'paypal'
+        },
+        onClick(_data, actions) {
+          if (cart.length === 0) {
+            setCheckoutStatus('Add an item to your cart before checking out.', 'error');
+            return actions.reject();
+          }
+
+          setCheckoutStatus('');
+          return actions.resolve();
+        },
+        async createOrder() {
+          setCheckoutStatus('Creating secure PayPal order...', 'info');
+
+          const response = await fetch(PAYPAL_CREATE_ORDER_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cart: buildPayPalCart() })
+          });
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(formatPayPalError(data, 'Unable to create PayPal order.'));
+          }
+
+          return data.id;
+        },
+        async onApprove(data) {
+          setCheckoutStatus('Capturing PayPal payment...', 'info');
+
+          const response = await fetch(PAYPAL_CAPTURE_ORDER_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderID: data.orderID })
+          });
+          const orderData = await response.json();
+
+          if (!response.ok) {
+            throw new Error(formatPayPalError(orderData, 'Unable to capture PayPal payment.'));
+          }
+
+          handleCheckoutSuccess(orderData);
+        },
+        onCancel() {
+          setCheckoutStatus('Checkout cancelled. Your cart is still saved.', 'info');
+        },
+        onError(error) {
+          setCheckoutStatus(error?.message || 'PayPal checkout failed. Please try again.', 'error');
+        }
+      }).render('#paypal-button-container');
+    } catch (error) {
+      paypalButtonContainer.hidden = true;
+      setCheckoutStatus(error?.message || 'PayPal checkout is unavailable.', 'error');
+    }
+  }
+
+  function initPayPalCheckout() {
+    if (paypalInitialized) return;
+    paypalInitialized = true;
+    renderPayPalButtons();
+  }
+
+  function getSVGIconForType(type) {
+    switch (type) {
+      case 'apparel':
+        return `<svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>`;
+      default:
+        return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle></svg>`;
+    }
+  }
+
+  function renderCartItems() {
+    if (cart.length === 0) {
+      cartItemsList.innerHTML = `<div class="cart-empty-message">Your shopping cart is currently empty.</div>`;
+      return;
+    }
+
+    cartItemsList.innerHTML = '';
+    cart.forEach(item => {
+      const cartItemEl = document.createElement('div');
+      cartItemEl.className = 'cart-item';
+
+      const itemVisual = item.image
+        ? `<img src="${item.image}" alt="${item.name}">`
+        : getSVGIconForType(item.type);
+
+      const variantLine = item.size && item.color
+        ? `<div class="cart-item-variant">Size ${item.size} &bull; ${item.color}</div>`
+        : '';
+
+      cartItemEl.innerHTML = `
+        <div class="cart-item-image">
+          ${itemVisual}
+        </div>
+        <div class="cart-item-details">
+          <div>
+            <div class="cart-item-title">${item.name}</div>
+            ${variantLine}
+            <div class="cart-item-price">$${item.price.toFixed(2)}</div>
+          </div>
+          <div class="cart-item-controls">
+            <div class="qty-selector">
+              <button class="qty-btn dec-btn" data-id="${item.id}">&minus;</button>
+              <div class="qty-val">${item.quantity}</div>
+              <button class="qty-btn inc-btn" data-id="${item.id}">&plus;</button>
+            </div>
+            <button class="cart-item-remove" data-id="${item.id}">Remove</button>
+          </div>
+        </div>
+      `;
+      cartItemsList.appendChild(cartItemEl);
+    });
+
+    cartItemsList.querySelectorAll('.dec-btn').forEach(btn => {
+      btn.addEventListener('click', () => updateQty(btn.getAttribute('data-id'), -1));
+    });
+    cartItemsList.querySelectorAll('.inc-btn').forEach(btn => {
+      btn.addEventListener('click', () => updateQty(btn.getAttribute('data-id'), 1));
+    });
+    cartItemsList.querySelectorAll('.cart-item-remove').forEach(btn => {
+      btn.addEventListener('click', () => removeFromCart(btn.getAttribute('data-id')));
+    });
+  }
+
+  document.querySelectorAll('.product-card .btn-add-to-cart').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      addProductFromCard(btn.closest('.product-card'));
+    });
+  });
+
+  productModalAddBtn?.addEventListener('click', () => {
+    if (activeProductCard) {
+      addProductFromCard(activeProductCard);
+    }
+  });
+
+  checkoutBtn?.addEventListener('click', () => {
+    initPayPalCheckout();
+    setCheckoutStatus('PayPal checkout needs a sandbox client ID before it can process orders.', 'error');
+  });
+
+  successModalCloseBtn.addEventListener('click', () => {
+    successModal.classList.remove('active');
+  });
+  successModal.addEventListener('click', (e) => {
+    if (e.target === successModal) {
+      successModal.classList.remove('active');
+    }
   });
 });
