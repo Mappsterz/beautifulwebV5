@@ -17,19 +17,14 @@
   <meta name="description" content="Official shop of Beau Thompson — limited-run Highland Cow sweatshirts and tees printed from the original studio painting.">
   <meta name="theme-color" content="#f5f0ea">
 
-  <!-- Replace with the production domain before launch -->
   <link rel="canonical" href="https://beaurancethompson.com/shop.html">
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap">
 
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="apple-touch-icon" href="assets/highland-cow.webp">
 
   <meta property="og:title" content="Beau Thompson | Highland Cow Studio Drop">
   <meta property="og:description" content="Limited Highland Cow sweatshirts and tees printed from the original studio painting.">
-  <meta property="og:image" content="assets/highland-cow-sweatshirt.png">
+  <meta property="og:image" content="https://beaurancethompson.com/assets/highland-cow-sweatshirt.png">
   <meta property="og:image:alt" content="Highland Cow Sweatshirt by Beau Thompson">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://beaurancethompson.com/shop.html">
@@ -38,9 +33,9 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Beau Thompson | Highland Cow Studio Drop">
   <meta name="twitter:description" content="Limited Highland Cow sweatshirts and tees printed from the original studio painting.">
-  <meta name="twitter:image" content="assets/highland-cow-sweatshirt.png">
+  <meta name="twitter:image" content="https://beaurancethompson.com/assets/highland-cow-sweatshirt.png">
 
-  <link rel="stylesheet" href="style.css?v=20">
+  <link rel="stylesheet" href="style.css?v=23">
 
   <script type="application/ld+json">
   {
@@ -50,21 +45,20 @@
     "url": "https://beaurancethompson.com/shop.html",
     "image": "https://beaurancethompson.com/assets/highland-cow-sweatshirt.png",
     "description": "Limited-run apparel and merchandise from the studio of Beau Thompson.",
-    "currenciesAccepted": "USD",
-    "paymentAccepted": "PayPal, Credit Card"
+    "currenciesAccepted": "USD"
   }
   </script>
 </head>
-<body>
+<body class="site-shop">
 
   <a href="#products" class="skip-link">Skip to products</a>
 
   <!-- Header & Navigation -->
-  <header id="header">
+  <header id="header" class="site-header">
     <div class="container nav-container">
       <a href="index.html" class="logo">Beau Thompson</a>
       <div class="header-actions">
-        <button type="button" class="cart-nav-link header-cart-btn" id="cart-nav-btn" aria-label="Open shopping cart" aria-controls="cart-drawer">
+        <button type="button" class="cart-nav-link header-cart-btn" id="cart-nav-btn" aria-label="Open shopping cart" aria-controls="cart-drawer" aria-expanded="false">
           <span class="cart-icon-container">
             <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--text-secondary)" stroke-width="1.5" fill="none" aria-hidden="true">
               <circle cx="9" cy="21" r="1"></circle>
@@ -99,12 +93,12 @@
       <div class="shop-header-image">
         <picture>
           <source srcset="assets/highland-cow.webp" type="image/webp">
-          <img src="assets/highland-cow.webp" alt="Untitled (Highland Cow) — studio print" loading="lazy" decoding="async">
+          <img src="assets/highland-cow.webp" alt="Untitled (Highland Cow) — studio print" loading="eager" decoding="async" fetchpriority="high">
         </picture>
       </div>
       <div class="shop-header-text">
         <span class="section-num">04 / Store</span>
-        <h2 class="section-title" style="margin-bottom: 1rem;">Merchandise</h2>
+        <h2 class="section-title">Merchandise</h2>
         <p class="shop-header-desc">The first studio drop — Highland Cow apparel, printed from the original painting.</p>
       </div>
     </div>
@@ -127,7 +121,7 @@
             <div class="product-image-wrapper product-image-wrapper--white product-open-trigger">
               <picture>
                 <source srcset="assets/highland-cow-sweatshirt.webp" type="image/webp">
-                <img src="assets/highland-cow-sweatshirt.webp" alt="Highland Cow Sweatshirt — grey crewneck with print" loading="eager" fetchpriority="high" decoding="async">
+                <img src="assets/highland-cow-sweatshirt.webp" alt="Highland Cow Sweatshirt — grey crewneck with print" loading="lazy" decoding="async">
               </picture>
               <span class="product-badge">New</span>
             </div>
@@ -239,7 +233,7 @@
               <p>Machine wash cold inside-out with like colors. Tumble dry low or hang to dry. Iron in reverse, avoiding the printed area. Do not bleach.</p>
             </div>
           </div>
-          <p class="drop-details-footnote">This is a limited studio drop. If your size sells out, please <a href="index.html#contact">send a note</a> and we will let you know if a restock is planned.</p>
+          <p class="drop-details-footnote">This is a limited studio drop. If your size sells out, please <a href="contact.html?inquiry=restock">send a note</a> and we will let you know if a restock is planned.</p>
         </div>
       </div>
     </div>
@@ -248,7 +242,7 @@
   </main>
 
   <!-- Product Detail Modal -->
-  <div class="product-modal-overlay" id="product-modal-overlay" aria-hidden="true">
+  <div class="product-modal-overlay" id="product-modal-overlay" aria-hidden="true" inert>
     <div class="product-modal" id="product-modal" role="dialog" aria-modal="true" aria-labelledby="product-modal-title">
       <button class="product-modal-close" id="product-modal-close" aria-label="Close product details">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -284,10 +278,10 @@
   </div>
 
   <!-- Cart Sidebar Drawer -->
-  <div class="cart-overlay" id="cart-overlay"></div>
-  <div class="cart-drawer" id="cart-drawer">
+  <div class="cart-overlay" id="cart-overlay" aria-hidden="true" inert></div>
+  <div class="cart-drawer" id="cart-drawer" role="dialog" aria-modal="true" aria-labelledby="cart-title" aria-hidden="true" inert>
     <div class="cart-header">
-      <h3>Shopping Cart</h3>
+      <h3 id="cart-title">Shopping Cart</h3>
       <button class="cart-close-btn" id="cart-close-btn" aria-label="Close Cart">
         <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="1.5">
           <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -307,21 +301,20 @@
         <span class="cart-summary-value" id="cart-subtotal">$0.00</span>
       </div>
       <div class="checkout-status" id="checkout-status" role="status" aria-live="polite"></div>
-      <div class="paypal-button-container" id="paypal-button-container"></div>
-      <button class="btn-checkout" id="checkout-btn" disabled>
-        PayPal Checkout
+      <button class="btn-checkout" id="checkout-btn" type="button" disabled>
+        Email Order Request
       </button>
     </div>
   </div>
 
   <!-- Checkout Success Modal Overlay -->
-  <div class="success-modal-overlay" id="success-modal-overlay">
+  <div class="success-modal-overlay" id="success-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="success-modal-title" aria-describedby="success-modal-message" aria-hidden="true" inert>
     <div class="success-modal-content">
       <svg class="success-modal-icon" viewBox="0 0 24 24">
         <polyline points="20 6 9 17 4 12"></polyline>
       </svg>
-      <h4 class="success-modal-title" id="success-modal-title">Purchase Successful</h4>
-      <p class="success-modal-message" id="success-modal-message">Thank you for supporting Beau Thompson's studio! Your PayPal payment has been captured successfully.</p>
+      <h4 class="success-modal-title" id="success-modal-title">Order Email Ready</h4>
+      <p class="success-modal-message" id="success-modal-message">Your email app has been opened with your order details. Send the message to request your order.</p>
       <button class="success-modal-btn" id="success-modal-close-btn">Return to Shop</button>
     </div>
   </div>
@@ -338,13 +331,7 @@
     </div>
   </footer>
 
-  <script>
-    window.PAYPAL_CONFIG = {
-      clientId: 'YOUR_PAYPAL_CLIENT_ID',
-      currency: 'USD',
-      intent: 'capture'
-    };
-  </script>
-  <script src="shop.js?v=3" defer></script>
+  <script src="nav.js?v=5" defer></script>
+  <script src="shop.js?v=9" defer></script>
 </body>
 </html>

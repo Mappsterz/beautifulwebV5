@@ -1,73 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
-  function onScrollFrame(callback) {
-    let ticking = false;
-    return () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        callback();
-        ticking = false;
-      });
-    };
-  }
-
-  // --- Mobile Navigation ---
-  const menuToggle = document.getElementById('menu-toggle');
   const navWrapper = document.getElementById('nav-wrapper');
-  const navOverlay = document.getElementById('nav-overlay');
   const mainContent = document.getElementById('site-main');
-  const focusableSelector = [
-    'a[href]',
-    'button:not([disabled])',
-    'textarea:not([disabled])',
-    'input:not([disabled])',
-    'select:not([disabled])',
-    '[tabindex]:not([tabindex="-1"])'
-  ].join(',');
-  let scrollLockDepth = 0;
-  let savedScrollY = 0;
-  let lastMenuFocusedElement = null;
   let lastCartFocusedElement = null;
   let lastProductModalFocusedElement = null;
+  let lastSuccessFocusedElement = null;
 
   function lockPageScroll() {
-    if (scrollLockDepth === 0) {
-      savedScrollY = window.scrollY || window.pageYOffset || 0;
-      document.body.style.top = `-${savedScrollY}px`;
-      document.body.classList.add('scroll-locked');
-    }
-    scrollLockDepth += 1;
+    window.siteNav?.lockPageScroll();
   }
 
   function unlockPageScroll() {
-    if (scrollLockDepth === 0) return;
-    scrollLockDepth -= 1;
-    if (scrollLockDepth > 0) return;
-    document.body.classList.remove('scroll-locked');
-    document.body.style.top = '';
-    window.scrollTo(0, savedScrollY);
-  }
-
-  function trapFocus(container, event) {
-    if (!container) return;
-    const focusable = Array.from(container.querySelectorAll(focusableSelector))
-      .filter((el) => !el.hasAttribute('hidden'));
-    if (!focusable.length) return;
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
+    window.siteNav?.unlockPageScroll();
   }
 
   function setMainHidden(hidden) {
     const nodes = [mainContent, document.querySelector('footer')];
     nodes.filter(Boolean).forEach((node) => {
-      node.setAttribute('aria-hidden', hidden ? 'true' : 'false');
+      if (hidden) node.setAttribute('aria-hidden', 'true');
+      else node.removeAttribute('aria-hidden');
       node.inert = hidden;
     });
   }
@@ -76,61 +26,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuOpen = navWrapper?.classList.contains('open');
     const cartOpen = document.getElementById('cart-drawer')?.classList.contains('active');
     const productOpen = document.getElementById('product-modal-overlay')?.classList.contains('active');
-    setMainHidden(Boolean(menuOpen || cartOpen || productOpen));
+    const successOpen = document.getElementById('success-modal-overlay')?.classList.contains('active');
+    const header = document.getElementById('header');
+    const shopOverlayOpen = Boolean(cartOpen || productOpen || successOpen);
+
+    setMainHidden(Boolean(menuOpen || cartOpen || productOpen || successOpen));
+    if (header) {
+      if (shopOverlayOpen) header.setAttribute('aria-hidden', 'true');
+      else header.removeAttribute('aria-hidden');
+      header.inert = shopOverlayOpen;
+    }
   }
 
-  function closeMenu() {
-    const wasOpen = navWrapper?.classList.contains('open');
-    menuToggle?.classList.remove('active');
-    navWrapper?.classList.remove('open');
-    navOverlay?.classList.remove('active');
-    unlockPageScroll();
-    document.body.classList.remove('menu-open');
-    menuToggle?.setAttribute('aria-expanded', 'false');
-    menuToggle?.setAttribute('aria-label', 'Open menu');
-    if (wasOpen && lastMenuFocusedElement instanceof HTMLElement) {
-      lastMenuFocusedElement.focus();
-    }
-    syncMainHiddenState();
-  }
-
-  function openMenu() {
-    lastMenuFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    menuToggle.classList.add('active');
-    navWrapper?.classList.add('open');
-    navOverlay?.classList.add('active');
-    lockPageScroll();
-    document.body.classList.add('menu-open');
-    menuToggle.setAttribute('aria-expanded', 'true');
-    menuToggle.setAttribute('aria-label', 'Close menu');
-    navWrapper?.querySelector('a, button')?.focus();
-    syncMainHiddenState();
-  }
-
-  menuToggle?.addEventListener('click', () => {
-    const isOpen = navWrapper?.classList.contains('open');
-    if (isOpen) {
-      closeMenu();
-    } else {
-      openMenu();
-    }
-  });
-
-  navOverlay?.addEventListener('click', closeMenu);
-  document.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', closeMenu);
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape') return;
-    if (navWrapper?.classList.contains('open')) closeMenu();
-  });
-
-  window.addEventListener('resize', () => {
-    if (window.innerWidth > 768 && navWrapper?.classList.contains('open')) {
-      closeMenu();
-    }
-  }, { passive: true });
+  document.addEventListener('site:menu-open', syncMainHiddenState);
+  document.addEventListener('site:menu-close', syncMainHiddenState);
   syncMainHiddenState();
 
   // --- Scroll Reveal ---
@@ -167,10 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let activeProductCard = null;
   let activeProductGallery = [];
   let activeProductGalleryIndex = 0;
-  let paypalInitialized = false;
+  const CART_STORAGE_KEY = 'beau-thompson-shop-cart';
+  const MAX_QUANTITY = 10;
+  const ORDER_EMAIL = 'info@beaurancethompson.com';
 
   // --- DOM Elements ---
-  const header = document.getElementById('header');
   const cartNavBtn = document.getElementById('cart-nav-btn');
   const cartCloseBtn = document.getElementById('cart-close-btn');
   const cartOverlay = document.getElementById('cart-overlay');
@@ -180,7 +90,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const cartSubtotal = document.getElementById('cart-subtotal');
   const checkoutBtn = document.getElementById('checkout-btn');
   const checkoutStatus = document.getElementById('checkout-status');
-  const paypalButtonContainer = document.getElementById('paypal-button-container');
   const successModal = document.getElementById('success-modal-overlay');
   const successModalTitle = document.getElementById('success-modal-title');
   const successModalMessage = document.getElementById('success-modal-message');
@@ -189,6 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const productModal = document.getElementById('product-modal');
   const productModalClose = document.getElementById('product-modal-close');
   const productModalImage = document.getElementById('product-modal-image');
+  const productModalImageStage = document.querySelector('.product-modal-image-stage');
   const productModalGallery = document.getElementById('product-modal-gallery');
   const productModalGalleryLabel = document.getElementById('product-modal-gallery-label');
   const productModalPrev = document.getElementById('product-modal-prev');
@@ -199,38 +109,32 @@ document.addEventListener('DOMContentLoaded', () => {
   const productModalDescription = document.getElementById('product-modal-description');
   const productModalOptions = document.getElementById('product-modal-options');
   const productModalAddBtn = document.getElementById('product-modal-add-btn');
-  const paypalConfig = window.PAYPAL_CONFIG || {};
-  const paypalClientId = paypalConfig.clientId || '';
-  const PAYPAL_CREATE_ORDER_URL = '/api/paypal/create-order';
-  const PAYPAL_CAPTURE_ORDER_URL = '/api/paypal/capture-order';
-
-  // --- Dynamic Scroll Header ---
-  const updateHeaderScroll = () => {
-    if (window.scrollY > 50) {
-      header.classList.add('scrolled');
-    } else {
-      header.classList.remove('scrolled');
-    }
-  };
-
-  window.addEventListener('scroll', onScrollFrame(updateHeaderScroll), { passive: true });
-  updateHeaderScroll();
 
   // --- Cart Drawer Toggles ---
   function openCart() {
+    window.siteNav?.closeMenu();
     lastCartFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     cartDrawer.classList.add('active');
     cartOverlay.classList.add('active');
+    cartDrawer.removeAttribute('inert');
+    cartDrawer.setAttribute('aria-hidden', 'false');
+    cartOverlay.removeAttribute('inert');
+    cartOverlay.setAttribute('aria-hidden', 'false');
+    cartNavBtn.setAttribute('aria-expanded', 'true');
     lockPageScroll();
-    initPayPalCheckout();
-    cartCloseBtn?.focus();
     syncMainHiddenState();
+    setTimeout(() => cartCloseBtn?.focus({ preventScroll: true }), 50);
   }
 
   function closeCart() {
     if (!cartDrawer.classList.contains('active')) return;
     cartDrawer.classList.remove('active');
     cartOverlay.classList.remove('active');
+    cartDrawer.setAttribute('inert', '');
+    cartDrawer.setAttribute('aria-hidden', 'true');
+    cartOverlay.setAttribute('inert', '');
+    cartOverlay.setAttribute('aria-hidden', 'true');
+    cartNavBtn.setAttribute('aria-expanded', 'false');
     unlockPageScroll();
     if (lastCartFocusedElement instanceof HTMLElement) {
       lastCartFocusedElement.focus();
@@ -246,6 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!productModalOverlay?.classList.contains('active')) return;
     productModalOverlay?.classList.remove('active');
     productModalOverlay?.setAttribute('aria-hidden', 'true');
+    productModalOverlay?.setAttribute('inert', '');
     activeProductCard = null;
     activeProductGallery = [];
     activeProductGalleryIndex = 0;
@@ -259,9 +164,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function getProductGallery(card) {
     if (card.dataset.gallery) {
       try {
-        return JSON.parse(card.dataset.gallery);
+        const gallery = JSON.parse(card.dataset.gallery);
+        return Array.isArray(gallery)
+          ? gallery.filter((slide) => slide && typeof slide.src === 'string')
+          : [];
       } catch {
-        return null;
+        return [];
       }
     }
 
@@ -313,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    productModalGallery.innerHTML = '';
+    productModalGallery.replaceChildren();
 
     if (gallery.length <= 1) {
       productModalGallery.classList.remove('active');
@@ -324,10 +232,13 @@ document.addEventListener('DOMContentLoaded', () => {
     productModalGallery.classList.add('active');
     gallery.forEach((slide, index) => {
       const btn = document.createElement('button');
+      const image = document.createElement('img');
       btn.type = 'button';
       btn.className = 'product-modal-thumb' + (index === 0 ? ' active' : '');
       btn.setAttribute('aria-label', slide.label || `View image ${index + 1} of ${gallery.length}`);
-      btn.innerHTML = `<img src="${slide.src}" alt="">`;
+      image.src = slide.src;
+      image.alt = '';
+      btn.appendChild(image);
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         showProductGallerySlide(index);
@@ -365,9 +276,10 @@ document.addEventListener('DOMContentLoaded', () => {
     lastProductModalFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     productModalOverlay.classList.add('active');
     productModalOverlay.setAttribute('aria-hidden', 'false');
+    productModalOverlay.removeAttribute('inert');
     lockPageScroll();
-    productModalClose?.focus();
     syncMainHiddenState();
+    setTimeout(() => productModalClose?.focus({ preventScroll: true }), 50);
   }
 
   productModalPrev?.addEventListener('click', (e) => {
@@ -386,12 +298,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   let productModalTouchStartX = 0;
-  productModal?.addEventListener('touchstart', (e) => {
+  productModalImageStage?.addEventListener('touchstart', (e) => {
     if (!productModalOverlay?.classList.contains('active')) return;
     productModalTouchStartX = e.changedTouches[0]?.screenX ?? 0;
   }, { passive: true });
 
-  productModal?.addEventListener('touchend', (e) => {
+  productModalImageStage?.addEventListener('touchend', (e) => {
     if (!productModalOverlay?.classList.contains('active')) return;
     if (activeProductGallery.length <= 1) return;
     const touchEndX = e.changedTouches[0]?.screenX ?? 0;
@@ -403,24 +315,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Tab' && productModalOverlay?.classList.contains('active')) {
-      trapFocus(productModal, e);
+      window.siteNav?.trapFocus(productModal, e);
       return;
     }
 
     if (e.key === 'Tab' && cartDrawer?.classList.contains('active')) {
-      trapFocus(cartDrawer, e);
+      window.siteNav?.trapFocus(cartDrawer, e);
       return;
     }
 
-    if (e.key === 'Tab' && navWrapper?.classList.contains('open')) {
-      trapFocus(navWrapper, e);
+    if (e.key === 'Tab' && successModal?.classList.contains('active')) {
+      window.siteNav?.trapFocus(successModal, e);
       return;
     }
 
     if (e.key === 'Escape') {
       closeProductModal();
       closeCart();
-      successModal.classList.remove('active');
+      closeSuccessModal();
       return;
     }
 
@@ -475,14 +387,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const options = card.querySelector('.product-options');
     if (!options || !productModalOptions) return;
 
-    productModalOptions.innerHTML = options.innerHTML;
+    productModalOptions.replaceChildren(...Array.from(options.children, (child) => child.cloneNode(true)));
     bindOptionSelectors(productModalOptions, card);
   }
 
   document.querySelectorAll('.product-card').forEach(card => {
     bindOptionSelectors(card, card);
 
-    card.querySelector('.product-open-trigger')?.addEventListener('click', () => openProductModal(card));
+    const productTrigger = card.querySelector('.product-open-trigger');
+    if (productTrigger) {
+      productTrigger.setAttribute('role', 'button');
+      productTrigger.setAttribute('tabindex', '0');
+      productTrigger.setAttribute('aria-label', `View ${card.querySelector('.art-title')?.textContent || 'product'} details`);
+      productTrigger.addEventListener('click', () => openProductModal(card));
+      productTrigger.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        openProductModal(card);
+      });
+    }
     card.querySelector('.art-title-row')?.addEventListener('click', () => openProductModal(card));
     card.querySelector('.art-meta')?.addEventListener('click', () => openProductModal(card));
   });
@@ -492,6 +415,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const existingItem = cart.find(item => item.id === id);
 
     if (existingItem) {
+      if (existingItem.quantity >= MAX_QUANTITY) {
+        setCheckoutStatus(`Maximum quantity is ${MAX_QUANTITY} per item.`, 'info');
+        closeProductModal();
+        openCart();
+        return;
+      }
       existingItem.quantity += 1;
     } else {
       cart.push({
@@ -507,6 +436,13 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    const addedItem = cart.find((item) => item.id === id);
+    setCheckoutStatus(
+      addedItem?.quantity === MAX_QUANTITY
+        ? `${name} added. Maximum quantity of ${MAX_QUANTITY} reached.`
+        : `${name} added to your cart.`,
+      'info'
+    );
     updateCart();
     closeProductModal();
     openCart();
@@ -543,15 +479,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const item = cart.find(entry => entry.id === id);
     if (!item) return;
 
-    item.quantity += delta;
+    const nextQuantity = item.quantity + delta;
+    if (nextQuantity > MAX_QUANTITY) {
+      setCheckoutStatus(`Maximum quantity is ${MAX_QUANTITY} per item.`, 'info');
+      return;
+    }
+
+    item.quantity = nextQuantity;
     if (item.quantity <= 0) {
       cart = cart.filter(entry => entry.id !== id);
     }
+    setCheckoutStatus(
+      item.quantity === MAX_QUANTITY
+        ? `Maximum quantity of ${MAX_QUANTITY} reached for ${item.name}.`
+        : '',
+      'info'
+    );
     updateCart();
   }
 
   function removeFromCart(id) {
     cart = cart.filter(entry => entry.id !== id);
+    setCheckoutStatus('');
     updateCart();
   }
 
@@ -559,6 +508,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCartItems();
     updateBadge();
     updateSubtotal();
+    persistCart();
   }
 
   function updateBadge() {
@@ -571,17 +521,47 @@ document.addEventListener('DOMContentLoaded', () => {
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     cartSubtotal.textContent = `$${total.toFixed(2)}`;
     if (checkoutBtn) {
-      checkoutBtn.disabled = true;
-      checkoutBtn.hidden = isPayPalConfigured();
-      checkoutBtn.textContent = isPayPalConfigured()
-        ? 'PayPal Checkout'
-        : 'Configure PayPal';
+      checkoutBtn.disabled = cart.length === 0;
+      checkoutBtn.textContent = 'Email Order Request';
     }
-    paypalButtonContainer?.classList.toggle('is-disabled', cart.length === 0);
   }
 
-  function isPayPalConfigured() {
-    return Boolean(paypalClientId && paypalClientId !== 'YOUR_PAYPAL_CLIENT_ID');
+  function persistCart() {
+    try {
+      sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    } catch {
+      // The cart still works when browser storage is unavailable.
+    }
+  }
+
+  function restoreCart() {
+    try {
+      const stored = JSON.parse(sessionStorage.getItem(CART_STORAGE_KEY) || '[]');
+      if (!Array.isArray(stored)) return;
+
+      cart = stored.filter((item) => (
+        item &&
+        typeof item.id === 'string' &&
+        typeof item.baseId === 'string' &&
+        typeof item.name === 'string' &&
+        Number.isFinite(Number(item.price)) &&
+        Number(item.price) >= 0 &&
+        typeof item.size === 'string' &&
+        typeof item.color === 'string'
+      )).map((item) => ({
+        id: item.id,
+        baseId: item.baseId,
+        name: item.name,
+        price: Number(item.price),
+        type: typeof item.type === 'string' ? item.type : 'apparel',
+        image: typeof item.image === 'string' ? item.image : '',
+        size: item.size,
+        color: item.color,
+        quantity: Math.min(MAX_QUANTITY, Math.max(1, Math.floor(Number(item.quantity) || 1)))
+      }));
+    } catch {
+      cart = [];
+    }
   }
 
   function setCheckoutStatus(message = '', type = 'info') {
@@ -591,209 +571,132 @@ document.addEventListener('DOMContentLoaded', () => {
     checkoutStatus.className = `checkout-status ${message ? 'active' : ''} ${type}`;
   }
 
-  function buildPayPalCart() {
-    return cart.map(({ baseId, quantity, size, color }) => ({
-      baseId,
-      quantity,
-      size,
-      color
-    }));
+  function buildOrderEmail() {
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const lines = cart.map((item, index) => (
+      `${index + 1}. ${item.name}\n` +
+      `   Variant: Size ${item.size}, ${item.color}\n` +
+      `   Quantity: ${item.quantity}\n` +
+      `   Price: $${item.price.toFixed(2)} each\n` +
+      `   Line total: $${(item.price * item.quantity).toFixed(2)}`
+    ));
+    const body = [
+      'Hello Beau Thompson Studio,',
+      '',
+      'I would like to request the following order:',
+      '',
+      ...lines.flatMap((line) => [line, '']),
+      `Subtotal: $${subtotal.toFixed(2)} USD`,
+      '',
+      'Please let me know the next steps for availability, shipping, and payment.',
+      '',
+      'Name:',
+      'Shipping location:'
+    ].join('\n');
+
+    return `mailto:${ORDER_EMAIL}?subject=${encodeURIComponent('Studio shop order request')}&body=${encodeURIComponent(body)}`;
   }
 
-  function formatPayPalError(data, fallback) {
-    if (data?.error) return data.error;
-    if (Array.isArray(data?.details) && data.details[0]?.description) {
-      return data.details[0].description;
-    }
-    return fallback;
-  }
-
-  function handleCheckoutSuccess(orderData) {
-    cart = [];
-    updateCart();
-    closeCart();
-    setCheckoutStatus('');
-
-    if (successModalTitle) {
-      successModalTitle.textContent = 'Payment Captured';
-    }
-
-    if (successModalMessage) {
-      const transactionLine = orderData.captureId
-        ? ` PayPal transaction ID: ${orderData.captureId}.`
-        : '';
-      successModalMessage.textContent = `Thank you for supporting Beau Thompson's studio. Your payment is complete and your order is ready for fulfillment.${transactionLine}`;
-    }
-
+  function openSuccessModal() {
+    lastSuccessFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    successModalTitle.textContent = 'Order Email Ready';
+    successModalMessage.textContent = 'Your email app has been opened with your selected items. Send the message to request your order; your cart will remain saved in this tab.';
     successModal.classList.add('active');
+    successModal.setAttribute('aria-hidden', 'false');
+    successModal.removeAttribute('inert');
+    lockPageScroll();
+    syncMainHiddenState();
+    setTimeout(() => successModalCloseBtn.focus({ preventScroll: true }), 50);
   }
 
-  function loadPayPalSdk() {
-    if (window.paypal?.Buttons) {
-      return Promise.resolve(window.paypal);
+  function closeSuccessModal() {
+    if (!successModal?.classList.contains('active')) return;
+    successModal.classList.remove('active');
+    successModal.setAttribute('aria-hidden', 'true');
+    successModal.setAttribute('inert', '');
+    unlockPageScroll();
+    if (lastSuccessFocusedElement instanceof HTMLElement) {
+      lastSuccessFocusedElement.focus();
     }
-
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      const currency = paypalConfig.currency || 'USD';
-      const intent = paypalConfig.intent || 'capture';
-
-      script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(paypalClientId)}&currency=${encodeURIComponent(currency)}&intent=${encodeURIComponent(intent)}&components=buttons`;
-      script.async = true;
-      script.onload = () => resolve(window.paypal);
-      script.onerror = () => reject(new Error('Unable to load the PayPal SDK.'));
-      document.head.appendChild(script);
-    });
-  }
-
-  async function renderPayPalButtons() {
-    if (!paypalButtonContainer) return;
-
-    if (!isPayPalConfigured()) {
-      paypalButtonContainer.hidden = true;
-      if (checkoutBtn) {
-        checkoutBtn.hidden = false;
-        checkoutBtn.disabled = true;
-        checkoutBtn.textContent = 'Configure PayPal';
-      }
-      setCheckoutStatus('Add your PayPal sandbox client ID in shop.html to enable checkout.', 'error');
-      return;
-    }
-
-    try {
-      const paypal = await loadPayPalSdk();
-      paypalButtonContainer.hidden = false;
-      if (checkoutBtn) {
-        checkoutBtn.hidden = true;
-      }
-      setCheckoutStatus('');
-
-      paypal.Buttons({
-        style: {
-          layout: 'vertical',
-          color: 'black',
-          shape: 'rect',
-          label: 'paypal'
-        },
-        onClick(_data, actions) {
-          if (cart.length === 0) {
-            setCheckoutStatus('Add an item to your cart before checking out.', 'error');
-            return actions.reject();
-          }
-
-          setCheckoutStatus('');
-          return actions.resolve();
-        },
-        async createOrder() {
-          setCheckoutStatus('Creating secure PayPal order...', 'info');
-
-          const response = await fetch(PAYPAL_CREATE_ORDER_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cart: buildPayPalCart() })
-          });
-          const data = await response.json();
-
-          if (!response.ok) {
-            throw new Error(formatPayPalError(data, 'Unable to create PayPal order.'));
-          }
-
-          return data.id;
-        },
-        async onApprove(data) {
-          setCheckoutStatus('Capturing PayPal payment...', 'info');
-
-          const response = await fetch(PAYPAL_CAPTURE_ORDER_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderID: data.orderID })
-          });
-          const orderData = await response.json();
-
-          if (!response.ok) {
-            throw new Error(formatPayPalError(orderData, 'Unable to capture PayPal payment.'));
-          }
-
-          handleCheckoutSuccess(orderData);
-        },
-        onCancel() {
-          setCheckoutStatus('Checkout cancelled. Your cart is still saved.', 'info');
-        },
-        onError(error) {
-          setCheckoutStatus(error?.message || 'PayPal checkout failed. Please try again.', 'error');
-        }
-      }).render('#paypal-button-container');
-    } catch (error) {
-      paypalButtonContainer.hidden = true;
-      setCheckoutStatus(error?.message || 'PayPal checkout is unavailable.', 'error');
-    }
-  }
-
-  function initPayPalCheckout() {
-    if (paypalInitialized) return;
-    paypalInitialized = true;
-    renderPayPalButtons();
-  }
-
-  function getSVGIconForType(type) {
-    switch (type) {
-      case 'apparel':
-        return `<svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>`;
-      default:
-        return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle></svg>`;
-    }
+    syncMainHiddenState();
   }
 
   function renderCartItems() {
+    cartItemsList.replaceChildren();
+
     if (cart.length === 0) {
-      cartItemsList.innerHTML = `<div class="cart-empty-message">Your shopping cart is currently empty.</div>`;
+      const emptyMessage = document.createElement('div');
+      emptyMessage.className = 'cart-empty-message';
+      emptyMessage.textContent = 'Your shopping cart is currently empty.';
+      cartItemsList.appendChild(emptyMessage);
       return;
     }
 
-    cartItemsList.innerHTML = '';
     cart.forEach(item => {
       const cartItemEl = document.createElement('div');
+      const imageWrap = document.createElement('div');
+      const details = document.createElement('div');
+      const itemInfo = document.createElement('div');
+      const title = document.createElement('div');
+      const variant = document.createElement('div');
+      const price = document.createElement('div');
+      const controls = document.createElement('div');
+      const quantitySelector = document.createElement('div');
+      const decreaseBtn = document.createElement('button');
+      const quantityValue = document.createElement('div');
+      const increaseBtn = document.createElement('button');
+      const removeBtn = document.createElement('button');
+
       cartItemEl.className = 'cart-item';
+      imageWrap.className = 'cart-item-image';
+      if (item.image) {
+        const image = document.createElement('img');
+        image.src = item.image;
+        image.alt = item.name;
+        imageWrap.appendChild(image);
+      } else {
+        imageWrap.setAttribute('aria-hidden', 'true');
+      }
 
-      const itemVisual = item.image
-        ? `<img src="${item.image}" alt="${item.name}">`
-        : getSVGIconForType(item.type);
+      details.className = 'cart-item-details';
+      title.className = 'cart-item-title';
+      title.textContent = item.name;
+      variant.className = 'cart-item-variant';
+      variant.textContent = `Size ${item.size} • ${item.color}`;
+      price.className = 'cart-item-price';
+      price.textContent = `$${item.price.toFixed(2)}`;
+      itemInfo.append(title, variant, price);
 
-      const variantLine = item.size && item.color
-        ? `<div class="cart-item-variant">Size ${item.size} &bull; ${item.color}</div>`
-        : '';
+      controls.className = 'cart-item-controls';
+      quantitySelector.className = 'qty-selector';
+      decreaseBtn.className = 'qty-btn dec-btn';
+      decreaseBtn.type = 'button';
+      decreaseBtn.textContent = '−';
+      decreaseBtn.setAttribute('aria-label', `Decrease ${item.name} quantity`);
+      quantityValue.className = 'qty-val';
+      quantityValue.textContent = item.quantity;
+      quantityValue.setAttribute('aria-label', `Quantity ${item.quantity}`);
+      increaseBtn.className = 'qty-btn inc-btn';
+      increaseBtn.type = 'button';
+      increaseBtn.textContent = '+';
+      increaseBtn.disabled = item.quantity >= MAX_QUANTITY;
+      increaseBtn.setAttribute('aria-label', item.quantity >= MAX_QUANTITY
+        ? `${item.name} is at the maximum quantity of ${MAX_QUANTITY}`
+        : `Increase ${item.name} quantity`);
+      removeBtn.className = 'cart-item-remove';
+      removeBtn.type = 'button';
+      removeBtn.textContent = 'Remove';
+      removeBtn.setAttribute('aria-label', `Remove ${item.name}, size ${item.size}, ${item.color}`);
 
-      cartItemEl.innerHTML = `
-        <div class="cart-item-image">
-          ${itemVisual}
-        </div>
-        <div class="cart-item-details">
-          <div>
-            <div class="cart-item-title">${item.name}</div>
-            ${variantLine}
-            <div class="cart-item-price">$${item.price.toFixed(2)}</div>
-          </div>
-          <div class="cart-item-controls">
-            <div class="qty-selector">
-              <button class="qty-btn dec-btn" data-id="${item.id}">&minus;</button>
-              <div class="qty-val">${item.quantity}</div>
-              <button class="qty-btn inc-btn" data-id="${item.id}">&plus;</button>
-            </div>
-            <button class="cart-item-remove" data-id="${item.id}">Remove</button>
-          </div>
-        </div>
-      `;
+      decreaseBtn.addEventListener('click', () => updateQty(item.id, -1));
+      increaseBtn.addEventListener('click', () => updateQty(item.id, 1));
+      removeBtn.addEventListener('click', () => removeFromCart(item.id));
+
+      quantitySelector.append(decreaseBtn, quantityValue, increaseBtn);
+      controls.append(quantitySelector, removeBtn);
+      details.append(itemInfo, controls);
+      cartItemEl.append(imageWrap, details);
       cartItemsList.appendChild(cartItemEl);
-    });
-
-    cartItemsList.querySelectorAll('.dec-btn').forEach(btn => {
-      btn.addEventListener('click', () => updateQty(btn.getAttribute('data-id'), -1));
-    });
-    cartItemsList.querySelectorAll('.inc-btn').forEach(btn => {
-      btn.addEventListener('click', () => updateQty(btn.getAttribute('data-id'), 1));
-    });
-    cartItemsList.querySelectorAll('.cart-item-remove').forEach(btn => {
-      btn.addEventListener('click', () => removeFromCart(btn.getAttribute('data-id')));
     });
   }
 
@@ -811,16 +714,25 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   checkoutBtn?.addEventListener('click', () => {
-    initPayPalCheckout();
-    setCheckoutStatus('PayPal checkout needs a sandbox client ID before it can process orders.', 'error');
+    if (cart.length === 0) {
+      setCheckoutStatus('Add an item to your cart before requesting an order.', 'error');
+      return;
+    }
+
+    const mailtoUrl = buildOrderEmail();
+    setCheckoutStatus('Opening your email app with the order details…', 'info');
+    window.location.href = mailtoUrl;
+    closeCart();
+    openSuccessModal();
   });
 
-  successModalCloseBtn.addEventListener('click', () => {
-    successModal.classList.remove('active');
-  });
+  successModalCloseBtn.addEventListener('click', closeSuccessModal);
   successModal.addEventListener('click', (e) => {
     if (e.target === successModal) {
-      successModal.classList.remove('active');
+      closeSuccessModal();
     }
   });
+
+  restoreCart();
+  updateCart();
 });

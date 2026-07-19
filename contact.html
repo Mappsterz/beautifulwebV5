@@ -19,14 +19,10 @@
 
   <link rel="canonical" href="https://beaurancethompson.com/contact.html">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap">
-
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="apple-touch-icon" href="assets/highland-cow.webp">
 
-  <link rel="stylesheet" href="style.css?v=20">
+  <link rel="stylesheet" href="style.css?v=23">
 </head>
 <body class="site-page">
 
@@ -75,7 +71,7 @@
           </div>
         </div>
 
-        <form class="contact-form" id="contact-form" data-endpoint="" method="POST" novalidate>
+        <form class="contact-form" id="contact-form">
           <div class="form-group">
             <input type="text" id="name" name="name" class="form-input" placeholder=" " required autocomplete="name">
             <label for="name" class="form-label">Name</label>
@@ -98,8 +94,8 @@
 
           <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" class="form-honeypot">
 
-          <button type="submit" class="submit-btn">Send Message</button>
-          <div class="form-message" id="form-message">Thank you. Your message has been sent successfully.</div>
+          <button type="submit" class="submit-btn">Compose Email</button>
+          <div class="form-message" id="form-message" role="status" aria-live="polite"></div>
         </form>
       </div>
     </div>
@@ -116,7 +112,7 @@
     </div>
   </footer>
 
-  <script src="nav.js?v=1" defer></script>
-  <script src="contact.js?v=1" defer></script>
+  <script src="nav.js?v=5" defer></script>
+  <script src="contact.js?v=2" defer></script>
 </body>
 </html>
